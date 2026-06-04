@@ -1,21 +1,39 @@
 import React, { useState } from 'react';
-import { CrudTable } from '../components/CrudTable';
+import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
 
 interface Authorization {
   id: number;
   role: string;
-  description: string;
+  permission: string;
+  notes: string;
 }
 
 const columns: TableColumnType<Authorization>[] = [
   { title: 'Role', dataIndex: 'role', key: 'role' },
-  { title: 'Description', dataIndex: 'description', key: 'description' },
+  { title: 'Permission', dataIndex: 'permission', key: 'permission' },
+  { title: 'Notes', dataIndex: 'notes', key: 'notes' },
+];
+
+const initialAuthorizations: Authorization[] = [
+  { id: 1, role: 'Admin', permission: 'Full access', notes: 'Manage users, assets and settings.' },
+  { id: 2, role: 'Manager', permission: 'Review and approve', notes: 'Approve downtime and PM schedules.' },
+  { id: 3, role: 'Operator', permission: 'Execute tasks', notes: 'Complete assigned work orders and logs.' },
+  { id: 4, role: 'Viewer', permission: 'Read only', notes: 'View dashboards and reports without editing.' },
 ];
 
 const AuthorizationMaster: React.FC = () => {
-  const [items, setItems] = useState<Authorization[]>([]);
-  return <CrudTable<Authorization> items={items} setItems={setItems} columns={columns} entityName="Authorization" />;
+  const [items, setItems] = useState<Authorization[]>(initialAuthorizations);
+  return (
+    <MasterPage<Authorization>
+      title="Authorization Master"
+      description="Configure authorization roles and permissions for plant operations."
+      items={items}
+      setItems={setItems}
+      columns={columns}
+      entityName="Authorization"
+    />
+  );
 };
 
 export default AuthorizationMaster;

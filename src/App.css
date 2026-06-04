@@ -182,3 +182,150 @@
     border-right-color: var(--border);
   }
 }
+
+.app-layout {
+  min-height: 100vh;
+  background: #eef2ff;
+}
+
+.app-sider {
+  background: #08172e !important;
+  box-shadow: 2px 0 24px rgba(15, 23, 42, 0.08);
+}
+
+.app-main {
+  background: #f3f7ff;
+}
+
+.app-header {
+  background: #fff;
+  padding: 0 32px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 2px 16px rgba(15, 23, 42, 0.06);
+}
+
+.app-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  gap: 16px;
+}
+
+.brand-label {
+  color: #5661a7;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.brand-title {
+  font-size: 18px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.header-chip {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.app-content {
+  min-height: calc(100vh - 64px);
+  padding: 24px 32px;
+}
+
+.page-shell {
+  min-height: calc(100vh - 128px);
+}
+
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 28px 20px 20px;
+  background: #08172e;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.sidebar-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #1f40a0;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.sidebar-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.sidebar-subtitle {
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.sidebar-menu {
+  border-right: 0;
+  background: transparent;
+}
+
+.dashboard-welcome-card {
+  background: linear-gradient(135deg, #eef2ff 0%, #dbeafe 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.dashboard-action-card {
+  background: #fff;
+}
+
+.metric-card {
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+}
+
+.sidebar-menu .ant-menu-item,
+.sidebar-menu .ant-menu-submenu-title {
+  padding: 0 24px !important;
+}
+
+.sidebar-menu .ant-menu-item,
+.sidebar-menu .ant-menu-submenu-title {
+  margin: 0 !important;
+}
+
+.ant-page-header {
+  padding: 0;
+}
+
+.ant-card-bordered {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 1024px) {
+  .app-content {
+    padding: 16px;
+  }
+  .app-header {
+    padding: 0 16px;
+  }
+}

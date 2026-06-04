@@ -1,28 +1,14 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { AuthContext, type Role } from './useAuth';
 
 // Simple role based auth context
-export type Role = 'admin' | 'manager' | 'operator' | 'viewer';
-
-interface AuthContextProps {
-  role: Role;
-  setRole: (role: Role) => void;
-}
-
-const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<Role>('viewer');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   return (
-    <AuthContext.Provider value={{ role, setRole }}>
+    <AuthContext.Provider value={{ role, setRole, isAuthenticated, setIsAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
 };

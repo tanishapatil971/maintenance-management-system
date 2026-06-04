@@ -1,54 +1,78 @@
-import React from 'react';
-import { Layout, Menu } from 'antd';
+import { Menu } from 'antd';
+import type { MenuProps } from 'antd';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
+  DashboardOutlined,
   UserOutlined,
   DatabaseOutlined,
   SettingOutlined,
   FileAddOutlined,
 } from '@ant-design/icons';
 
-const { Sider } = Layout;
-
-const menuItems = [
-  // Masters
-  { key: '/user-master', label: 'User Master', icon: <UserOutlined /> },
-  { key: '/department-master', label: 'Department Master', icon: <DatabaseOutlined /> },
-  { key: '/authorization-master', label: 'Authorization Master', icon: <SettingOutlined /> },
-  { key: '/element-master', label: 'Element Master', icon: <DatabaseOutlined /> },
-  { key: '/sub-element-master', label: 'Sub Element Master', icon: <DatabaseOutlined /> },
-  { key: '/machine-master', label: 'Machine Master', icon: <DatabaseOutlined /> },
-  { key: '/checklist-master', label: 'Checklist Master', icon: <DatabaseOutlined /> },
-  { key: '/uom-master', label: 'UOM Master', icon: <DatabaseOutlined /> },
-  { key: '/spare-master', label: 'Spare Master', icon: <DatabaseOutlined /> },
-  { key: '/downtime-master', label: 'Down Time Master', icon: <DatabaseOutlined /> },
-  { key: '/actiontaken-master', label: 'Action Taken Master', icon: <DatabaseOutlined /> },
-  { key: '/maintenancetype-master', label: 'Maintenance Type Master', icon: <DatabaseOutlined /> },
-  // Transactions
-  { key: '/downtime-entry', label: 'Down Time Entry', icon: <FileAddOutlined /> },
-  { key: '/actiontaken-entry', label: 'Action Taken Entry', icon: <FileAddOutlined /> },
-  { key: '/pmschedule-entry', label: 'PM Schedule Entry', icon: <FileAddOutlined /> },
-  { key: '/pmschedule-completion-entry', label: 'PM Schedule Completion', icon: <FileAddOutlined /> },
-  { key: '/tbmschedule-entry', label: 'TBM Schedule Entry', icon: <FileAddOutlined /> },
+const menuItems: MenuProps['items'] = [
+  {
+    key: 'dashboard-group',
+    type: 'group',
+    label: 'Dashboard',
+    children: [
+      {
+        key: '/dashboard',
+        icon: <DashboardOutlined />, 
+        label: <NavLink to="/dashboard">Dashboard</NavLink>,
+      },
+    ],
+  },
+  {
+    key: 'masters-group',
+    type: 'group',
+    label: 'Masters',
+    children: [
+      { key: '/user-master', icon: <UserOutlined />, label: <NavLink to="/user-master">User Master</NavLink> },
+      { key: '/department-master', icon: <DatabaseOutlined />, label: <NavLink to="/department-master">Department Master</NavLink> },
+      { key: '/authorization-master', icon: <SettingOutlined />, label: <NavLink to="/authorization-master">Authorization Master</NavLink> },
+      { key: '/element-master', icon: <DatabaseOutlined />, label: <NavLink to="/element-master">Element Master</NavLink> },
+      { key: '/sub-element-master', icon: <DatabaseOutlined />, label: <NavLink to="/sub-element-master">Sub Element Master</NavLink> },
+      { key: '/machine-master', icon: <DatabaseOutlined />, label: <NavLink to="/machine-master">Machine Master</NavLink> },
+      { key: '/checklist-master', icon: <DatabaseOutlined />, label: <NavLink to="/checklist-master">Checklist Master</NavLink> },
+      { key: '/uom-master', icon: <DatabaseOutlined />, label: <NavLink to="/uom-master">UOM Master</NavLink> },
+      { key: '/spare-master', icon: <DatabaseOutlined />, label: <NavLink to="/spare-master">Spare Master</NavLink> },
+      { key: '/downtime-master', icon: <DatabaseOutlined />, label: <NavLink to="/downtime-master">Down Time Master</NavLink> },
+      { key: '/actiontaken-master', icon: <DatabaseOutlined />, label: <NavLink to="/actiontaken-master">Action Taken Master</NavLink> },
+      { key: '/maintenancetype-master', icon: <DatabaseOutlined />, label: <NavLink to="/maintenancetype-master">Maintenance Type Master</NavLink> },
+    ],
+  },
+  {
+    key: 'transactions-group',
+    type: 'group',
+    label: 'Transactions',
+    children: [
+      { key: '/downtime-entry', icon: <FileAddOutlined />, label: <NavLink to="/downtime-entry">Down Time Entry</NavLink> },
+      { key: '/actiontaken-entry', icon: <FileAddOutlined />, label: <NavLink to="/actiontaken-entry">Action Taken Entry</NavLink> },
+      { key: '/pmschedule-entry', icon: <FileAddOutlined />, label: <NavLink to="/pmschedule-entry">PM Schedule Entry</NavLink> },
+      { key: '/pmschedule-completion-entry', icon: <FileAddOutlined />, label: <NavLink to="/pmschedule-completion-entry">PM Schedule Completion Entry</NavLink> },
+      { key: '/tbmschedule-entry', icon: <FileAddOutlined />, label: <NavLink to="/tbmschedule-entry">TBM Schedule Entry</NavLink> },
+    ],
+  },
 ];
 
 export const Sidebar = () => {
   const location = useLocation();
   return (
-    <Sider width={240} className="site-layout-background" style={{ minHeight: '100vh' }}>
-      <div style={{ height: 32, margin: 16, color: 'white', fontSize: 18, fontWeight: 'bold' }}>
-        Probity Tech
+    <div className="sidebar-container">
+      <div className="sidebar-brand">
+        <div className="sidebar-logo">PT</div>
+        <div>
+          <div className="sidebar-title">Probity Technologies</div>
+          <div className="sidebar-subtitle">Maintenance Suite</div>
+        </div>
       </div>
       <Menu
         theme="dark"
         mode="inline"
         selectedKeys={[location.pathname]}
-        items={menuItems.map(item => ({
-          key: item.key,
-          icon: item.icon,
-          label: <NavLink to={item.key}>{item.label}</NavLink>,
-        }))}
+        items={menuItems}
+        className="sidebar-menu"
       />
-    </Sider>
+    </div>
   );
 };

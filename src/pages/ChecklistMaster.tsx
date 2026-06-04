@@ -1,21 +1,39 @@
 import React, { useState } from 'react';
-import { CrudTable } from '../components/CrudTable';
+import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
 
 interface Checklist {
   id: number;
   name: string;
-  description: string;
+  frequency: string;
+  owner: string;
 }
 
 const columns: TableColumnType<Checklist>[] = [
-  { title: 'Name', dataIndex: 'name', key: 'name' },
-  { title: 'Description', dataIndex: 'description', key: 'description' },
+  { title: 'Checklist', dataIndex: 'name', key: 'name' },
+  { title: 'Frequency', dataIndex: 'frequency', key: 'frequency' },
+  { title: 'Owner', dataIndex: 'owner', key: 'owner' },
+];
+
+const initialChecklists: Checklist[] = [
+  { id: 1, name: 'Daily equipment inspection', frequency: 'Daily', owner: 'Maintenance' },
+  { id: 2, name: 'Lubrication review', frequency: 'Weekly', owner: 'Reliability' },
+  { id: 3, name: 'Safety audit', frequency: 'Monthly', owner: 'Safety team' },
+  { id: 4, name: 'Calibration review', frequency: 'Quarterly', owner: 'Calibration' },
 ];
 
 const ChecklistMaster: React.FC = () => {
-  const [items, setItems] = useState<Checklist[]>([]);
-  return <CrudTable<Checklist> items={items} setItems={setItems} columns={columns} entityName="Checklist" />;
+  const [items, setItems] = useState<Checklist[]>(initialChecklists);
+  return (
+    <MasterPage<Checklist>
+      title="Checklist Master"
+      description="Manage standard checklists used by maintenance and inspection teams."
+      items={items}
+      setItems={setItems}
+      columns={columns}
+      entityName="Checklist"
+    />
+  );
 };
 
 export default ChecklistMaster;

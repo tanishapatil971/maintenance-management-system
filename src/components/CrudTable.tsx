@@ -1,6 +1,9 @@
 import React from 'react';
 import { Table, Button, Modal, Form, Input } from 'antd';
 import type { TableColumnType } from 'antd';
+import { useAuth } from '../context/useAuth';
+
+const { Search } = Input;
 
 interface CrudTableProps<T extends { id: number }> {
   items: T[];
@@ -11,8 +14,11 @@ interface CrudTableProps<T extends { id: number }> {
 
 export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
   const { items, setItems, columns, entityName } = props;
+  const { role } = useAuth();
+  const isViewer = role === 'viewer';
   const [isModalVisible, setIsModalVisible] = React.useState(false);
   const [editingItem, setEditingItem] = React.useState<T | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState('');
   const [form] = Form.useForm();
 
   const showAdd = () => {
@@ -32,30 +38,37 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
   const handleOk = async () => {
     const values = await form.validateFields();
     if (editingItem) {
-      // update existing
       setItems(prev => prev.map(it => (it.id === editingItem.id ? { ...editingItem, ...values } : it)));
     } else {
-      // add new
       const newItem = { id: Date.now(), ...values } as T;
       setItems(prev => [...prev, newItem]);
     }
     setIsModalVisible(false);
   };
 
-  const mergedColumns: TableColumnType<T>[] = [
-    ...columns,
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: T) => (
-        <Button type="link" onClick={() => showEdit(record)}>
-          Edit
-        </Button>
-      ),
-    },
-  ];
+  const actionColumn: TableColumnType<T> = {
+    title: 'Actions',
+    key: 'actions',
+    width: 120,
+    render: (_: unknown, record: T) => (
+      <Button type="link" onClick={() => showEdit(record)}>
+        Edit
+      </Button>
+    ),
+  };
 
-  // Dynamically generate form items based on column dataIndex (excluding id)
+  const filteredItems = items.filter(item => {
+    const filterText = searchTerm.trim().toLowerCase();
+    if (!filterText) return true;
+    return columns.some(col => {
+      const dataIndex = col.dataIndex as keyof T;
+      const value = item[dataIndex];
+      return value !== undefined && value !== null && String(value).toLowerCase().includes(filterText);
+    });
+  });
+
+  const tableColumns: TableColumnType<T>[] = isViewer ? columns : [...columns, actionColumn];
+
   const formItems = columns
     .filter(col => col.dataIndex && col.dataIndex !== 'id')
     .map(col => (
@@ -71,10 +84,27 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
 
   return (
     <div>
-      <Button type="primary" onClick={showAdd} style={{ marginBottom: 16 }}>
-        Add {entityName}
-      </Button>
-      <Table dataSource={items} columns={mergedColumns} rowKey="id" />
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16, marginBottom: 16 }}>
+        <Search
+          placeholder={`Search ${entityName}`}
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          allowClear
+          style={{ minWidth: 280, flex: 1 }}
+        />
+        {!isViewer && (
+          <Button type="primary" onClick={showAdd}>
+            Add {entityName}
+          </Button>
+        )}
+      </div>
+      <Table
+        dataSource={filteredItems}
+        columns={tableColumns}
+        rowKey="id"
+        pagination={{ pageSize: 8 }}
+        bordered
+      />
       <Modal
         title={editingItem ? `Edit ${entityName}` : `Add ${entityName}`}
         open={isModalVisible}

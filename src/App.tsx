@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import type { ReactElement } from 'react';
 import { Layout } from 'antd';
+import './App.css';
 import { Sidebar } from './components/Sidebar';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -22,15 +24,15 @@ import ActionTakenEntry from './pages/ActionTakenEntry';
 import PMScheduleEntry from './pages/PMScheduleEntry';
 import PMScheduleCompletionEntry from './pages/PMScheduleCompletionEntry';
 import TBMScheduleEntry from './pages/TBMScheduleEntry';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 
 const { Header, Content, Sider } = Layout;
 
 // Private route component
-const PrivateRoute = ({ children }: { children: JSX.Element }) => {
-  const { role } = useAuth();
-  // treat 'viewer' as unauthenticated
-  return role === 'viewer' ? <Navigate to="/login" replace /> : children;
+const PrivateRoute = ({ children }: { children: ReactElement }) => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 function App() {
@@ -43,16 +45,27 @@ function App() {
             path="/*"
             element={
               <PrivateRoute>
-                <Layout style={{ minHeight: '100vh' }}>
-                  <Sider width={240} className="site-layout-background">
+                <Layout className="app-layout">
+                  <Sider width={280} className="app-sider">
                     <Sidebar />
                   </Sider>
-                  <Layout>
-                    <Header style={{ background: '#fff', padding: 0 }} />
-                    <Content style={{ margin: '24px' }}>
-                      <Routes>
-                        <Route index element={<Navigate to="/dashboard" replace />} />
-                        <Route path="dashboard" element={<Dashboard />} />
+                  <Layout className="app-main">
+                    <Header className="app-header">
+                      <div className="app-header-content">
+                        <div>
+                          <div className="brand-label">Probity Technologies Pvt. Ltd.</div>
+                          <div className="brand-title">Maintenance Intelligence Suite</div>
+                        </div>
+                        <div className="header-actions">
+                          <span className="header-chip">Enterprise Access</span>
+                        </div>
+                      </div>
+                    </Header>
+                    <Content className="app-content">
+                      <div className="page-shell">
+                        <Routes>
+                          <Route index element={<Navigate to="/dashboard" replace />} />
+                          <Route path="dashboard" element={<Dashboard />} />
                         {/* Masters */}
                         <Route path="user-master" element={<UserMaster />} />
                         <Route path="department-master" element={<DepartmentMaster />} />
@@ -73,6 +86,7 @@ function App() {
                         <Route path="pmschedule-completion-entry" element={<PMScheduleCompletionEntry />} />
                         <Route path="tbmschedule-entry" element={<TBMScheduleEntry />} />
                       </Routes>
+                      </div>
                     </Content>
                   </Layout>
                 </Layout>
