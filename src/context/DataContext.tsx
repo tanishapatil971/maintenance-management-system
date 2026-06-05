@@ -34,6 +34,42 @@ export interface ActionTakenRecord {
   status: ActionStatus;
 }
 
+export interface Machine {
+  id: number;
+  name: string;
+  department: string;
+}
+
+export type Frequency = 'Daily' | 'Weekly' | 'Monthly' | 'Quarterly' | 'Yearly';
+
+export type ScheduleStatus = 'Upcoming' | 'Due' | 'Overdue' | 'Completed';
+
+export interface PMScheduleRecord {
+  id: number;
+  machineId: number;
+  machine: string;
+  category: string;
+  frequency: Frequency;
+  scheduledDate: string; // initial scheduled date
+  nextDueDate: string; // computed
+  status: ScheduleStatus;
+  assignedTo: string;
+  notes?: string;
+  completedDate?: string;
+}
+
+export interface TBMScheduleRecord {
+  id: number;
+  machineId: number;
+  machine: string;
+  plannedDate: string;
+  cycle: string;
+  nextDueDate: string;
+  status: ScheduleStatus;
+  owner: string;
+  notes?: string;
+}
+
 interface DataContextProps {
   downtimeRecords: DownTimeRecord[];
   setDowntimeRecords: React.Dispatch<React.SetStateAction<DownTimeRecord[]>>;
@@ -45,6 +81,18 @@ interface DataContextProps {
   deleteDowntimeRecord: (ticketId: number) => void;
   getActionsByTicket: (ticketId: number) => ActionTakenRecord[];
   getTicketById: (ticketId: number) => DownTimeRecord | undefined;
+  // Machines and schedules
+  machines: Machine[];
+  pmSchedules: PMScheduleRecord[];
+  tbmSchedules: TBMScheduleRecord[];
+  addPMSchedule: (s: Omit<PMScheduleRecord, 'id' | 'nextDueDate' | 'status'>) => void;
+  updatePMSchedule: (s: PMScheduleRecord) => void;
+  deletePMSchedule: (id: number) => void;
+  addTBMSchedule: (s: Omit<TBMScheduleRecord, 'id' | 'nextDueDate' | 'status'>) => void;
+  updateTBMSchedule: (s: TBMScheduleRecord) => void;
+  deleteTBMSchedule: (id: number) => void;
+  getPMSchedules: () => PMScheduleRecord[];
+  getTBMSchedules: () => TBMScheduleRecord[];
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -152,6 +200,42 @@ const initialActionRecords: ActionTakenRecord[] = [
   },
 ];
 
+const initialMachines: Machine[] = [
+  { id: 1, name: 'Press Unit 14', department: 'Production' },
+  { id: 2, name: 'Conveyor A', department: 'Material Handling' },
+  { id: 3, name: 'Pump Station 3', department: 'Fluid Systems' },
+  { id: 4, name: 'Cooling Tower', department: 'Utilities' },
+];
+
+const initialPMSchedules: PMScheduleRecord[] = [
+  {
+    id: 1,
+    machineId: 4,
+    machine: 'Cooling Tower',
+    category: 'Preventive',
+    frequency: 'Monthly',
+    scheduledDate: '2026-06-10',
+    nextDueDate: '2026-07-10',
+    status: 'Upcoming',
+    assignedTo: 'Arjun Singh',
+    notes: 'Routine coolant system check',
+  },
+];
+
+const initialTBMSchedules: TBMScheduleRecord[] = [
+  {
+    id: 1,
+    machineId: 3,
+    machine: 'Pump Station 3',
+    plannedDate: '2026-06-08',
+    cycle: '12 months',
+    nextDueDate: '2027-06-08',
+    status: 'Upcoming',
+    owner: 'Priya Rao',
+    notes: 'Annual bearing inspection',
+  },
+];
+
 const deriveDowntimeStatus = (actions: ActionTakenRecord[]): DowntimeStatus => {
   if (!actions.length) return 'Open';
   if (actions.some(action => action.status === 'Open' || action.status === 'In Progress')) {
@@ -171,6 +255,9 @@ const generateActionNumber = (existingCount: number) => {
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [downtimeRecords, setDowntimeRecords] = useState<DownTimeRecord[]>(initialDowntimeRecords);
   const [actionRecords, setActionRecords] = useState<ActionTakenRecord[]>(initialActionRecords);
+  const [machines, setMachines] = useState<Machine[]>(initialMachines);
+  const [pmSchedules, setPMSchedules] = useState<PMScheduleRecord[]>(initialPMSchedules);
+  const [tbmSchedules, setTBMSchedules] = useState<TBMScheduleRecord[]>(initialTBMSchedules);
 
   const addAction = (action: Omit<ActionTakenRecord, 'id' | 'actionNumber' | 'ticketNumber' | 'machine'>) => {
     const ticket = downtimeRecords.find(item => item.id === action.ticketId);
@@ -192,6 +279,80 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const deleteAction = (actionId: number) => {
     setActionRecords(prev => prev.filter(item => item.id !== actionId));
   };
+
+  // Schedule helpers
+  const calculateNextDue = (fromDate: string, frequency: Frequency) => {
+    const d = dayjs(fromDate);
+    switch (frequency) {
+      case 'Daily':
+        return d.add(1, 'day').format('YYYY-MM-DD');
+      case 'Weekly':
+        return d.add(1, 'week').format('YYYY-MM-DD');
+      case 'Monthly':
+        return d.add(1, 'month').format('YYYY-MM-DD');
+      case 'Quarterly':
+        return d.add(3, 'month').format('YYYY-MM-DD');
+      case 'Yearly':
+        return d.add(1, 'year').format('YYYY-MM-DD');
+      default:
+        return d.add(1, 'month').format('YYYY-MM-DD');
+    }
+  };
+
+  const deriveScheduleStatus = (nextDue: string, completedDate?: string): ScheduleStatus => {
+    if (completedDate) return 'Completed';
+    const now = dayjs();
+    const due = dayjs(nextDue);
+    if (due.isBefore(now, 'day')) return 'Overdue';
+    if (due.isSame(now, 'day')) return 'Due';
+    return 'Upcoming';
+  };
+
+  const addPMSchedule = (s: Omit<PMScheduleRecord, 'id' | 'nextDueDate' | 'status'>) => {
+    const machine = machines.find(m => m.id === s.machineId);
+    const nextDue = calculateNextDue(s.scheduledDate, s.frequency);
+    const status = deriveScheduleStatus(nextDue);
+    const newItem: PMScheduleRecord = {
+      id: Date.now(),
+      machine: machine?.name || s.machineId.toString(),
+      nextDueDate: nextDue,
+      status,
+      ...s,
+    };
+    setPMSchedules(prev => [newItem, ...prev]);
+  };
+
+  const updatePMSchedule = (s: PMScheduleRecord) => {
+    const nextDue = calculateNextDue(s.scheduledDate, s.frequency);
+    const status = deriveScheduleStatus(nextDue, s.completedDate);
+    setPMSchedules(prev => prev.map(it => (it.id === s.id ? { ...s, nextDueDate: nextDue, status } : it)));
+  };
+
+  const deletePMSchedule = (id: number) => setPMSchedules(prev => prev.filter(it => it.id !== id));
+
+  const addTBMSchedule = (s: Omit<TBMScheduleRecord, 'id' | 'nextDueDate' | 'status'>) => {
+    const machine = machines.find(m => m.id === s.machineId);
+    const nextDue = s.plannedDate; // TBM plannedDate already indicates next planned
+    const status = deriveScheduleStatus(nextDue);
+    const newItem: TBMScheduleRecord = {
+      id: Date.now(),
+      machine: machine?.name || s.machineId.toString(),
+      nextDueDate: nextDue,
+      status,
+      ...s,
+    };
+    setTBMSchedules(prev => [newItem, ...prev]);
+  };
+
+  const updateTBMSchedule = (s: TBMScheduleRecord) => {
+    const status = deriveScheduleStatus(s.nextDueDate);
+    setTBMSchedules(prev => prev.map(it => (it.id === s.id ? { ...s, status } : it)));
+  };
+
+  const deleteTBMSchedule = (id: number) => setTBMSchedules(prev => prev.filter(it => it.id !== id));
+
+  const getPMSchedules = () => pmSchedules.slice();
+  const getTBMSchedules = () => tbmSchedules.slice();
 
   const deleteDowntimeRecord = (ticketId: number) => {
     setDowntimeRecords(prev => prev.filter(item => item.id !== ticketId));
@@ -221,6 +382,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     );
   }, [actionRecords]);
 
+  // keep schedule statuses up to date when time or schedules change
+  useEffect(() => {
+    setPMSchedules(prev => prev.map(s => ({ ...s, status: deriveScheduleStatus(s.nextDueDate, s.completedDate) })));
+  }, [pmSchedules.length]);
+
   const value = useMemo(
     () => ({
       downtimeRecords,
@@ -233,6 +399,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       deleteDowntimeRecord,
       getActionsByTicket,
       getTicketById,
+      machines,
+      pmSchedules,
+      tbmSchedules,
+      addPMSchedule,
+      updatePMSchedule,
+      deletePMSchedule,
+      addTBMSchedule,
+      updateTBMSchedule,
+      deleteTBMSchedule,
+      getPMSchedules,
+      getTBMSchedules,
     }),
     [downtimeRecords, actionRecords]
   );

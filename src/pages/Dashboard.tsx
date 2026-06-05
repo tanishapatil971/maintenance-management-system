@@ -6,7 +6,7 @@ import { useDataContext } from '../context/DataContext';
 const { Title, Text } = Typography;
 
 const Dashboard: React.FC = () => {
-  const { downtimeRecords, actionRecords } = useDataContext();
+  const { downtimeRecords, actionRecords, pmSchedules, tbmSchedules } = useDataContext();
 
   const metrics = useMemo(() => {
     const openCount = downtimeRecords.filter(d => d.status === 'Open').length;
@@ -16,14 +16,23 @@ const Dashboard: React.FC = () => {
     const openActions = actionRecords.filter(a => a.status === 'Open').length;
     const resolvedActions = actionRecords.filter(a => a.status === 'Resolved' || a.status === 'Closed').length;
 
+    const pmUpcoming = pmSchedules.filter(p => dayjs(p.nextDueDate).isAfter(dayjs(), 'day')).length;
+    const pmOverdue = pmSchedules.filter(p => dayjs(p.nextDueDate).isBefore(dayjs(), 'day')).length;
+    const tbmUpcoming = tbmSchedules.filter(t => dayjs(t.nextDueDate).isAfter(dayjs(), 'day')).length;
+    const tbmOverdue = tbmSchedules.filter(t => dayjs(t.nextDueDate).isBefore(dayjs(), 'day')).length;
+
     return {
       openDowntime: openCount,
       closedDowntime: closedCount,
       inProgressDowntime: inProgressCount,
       openActions,
       resolvedActions,
+      pmUpcoming,
+      pmOverdue,
+      tbmUpcoming,
+      tbmOverdue,
     };
-  }, [downtimeRecords, actionRecords]);
+  }, [downtimeRecords, actionRecords, pmSchedules, tbmSchedules]);
 
   const kpiMetrics = [
     { key: 'open-downtime', label: 'Open Downtime', value: metrics.openDowntime, color: 'orange' },
@@ -31,6 +40,10 @@ const Dashboard: React.FC = () => {
     { key: 'closed-downtime', label: 'Closed Downtime', value: metrics.closedDowntime, color: 'green' },
     { key: 'open-actions', label: 'Open Actions', value: metrics.openActions, color: 'orange' },
     { key: 'resolved-actions', label: 'Resolved Actions', value: metrics.resolvedActions, color: 'green' },
+    { key: 'pm-upcoming', label: 'PM Upcoming', value: metrics.pmUpcoming, color: 'blue' },
+    { key: 'pm-overdue', label: 'PM Overdue', value: metrics.pmOverdue, color: 'red' },
+    { key: 'tbm-upcoming', label: 'TBM Upcoming', value: metrics.tbmUpcoming, color: 'blue' },
+    { key: 'tbm-overdue', label: 'TBM Overdue', value: metrics.tbmOverdue, color: 'red' },
     { key: 'total-downtime', label: 'Downtime Tickets', value: downtimeRecords.length, color: 'purple' },
   ];
 
