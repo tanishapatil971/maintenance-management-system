@@ -4,7 +4,6 @@ import {
   Typography,
   Table,
   Button,
-  Modal,
   Form,
   Input,
   Select,
@@ -22,6 +21,8 @@ import type { TableColumnType } from 'antd';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import { useAuth } from '../context/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { useDataContext } from '../context/DataContext';
 
 dayjs.extend(duration);
 
@@ -101,69 +102,27 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const initialRecords: DownTimeRecord[] = [
-  {
-    id: 1,
-    ticketNumber: 'DT-20260601-001',
-    machine: 'Press Unit 14',
-    machineId: 1,
-    department: 'Production',
-    downTimeReason: 'Mechanical failure',
-    startDateTime: '2026-06-01 08:30:00',
-    endDateTime: '2026-06-01 10:15:00',
-    duration: '01:45:00',
-    status: 'Closed',
-    remarks: 'Hydraulic seal replaced',
-  },
-  {
-    id: 2,
-    ticketNumber: 'DT-20260602-002',
-    machine: 'Pump Station 3',
-    machineId: 3,
-    department: 'Fluid Systems',
-    downTimeReason: 'Sensor malfunction',
-    startDateTime: '2026-06-02 14:20:00',
-    endDateTime: '',
-    duration: '00:00:00',
-    status: 'In Progress',
-    remarks: 'Awaiting sensor replacement',
-  },
-  {
-    id: 3,
-    ticketNumber: 'DT-20260603-003',
-    machine: 'Conveyor A',
-    machineId: 2,
-    department: 'Material Handling',
-    downTimeReason: 'Mechanical failure',
-    startDateTime: '2026-06-03 11:00:00',
-    endDateTime: '',
-    duration: '00:00:00',
-    status: 'Open',
-    remarks: 'Belt misalignment detected',
-  },
-  {
-    id: 4,
-    ticketNumber: 'DT-20260604-004',
-    machine: 'Cooling Tower',
-    machineId: 4,
-    department: 'Utilities',
-    downTimeReason: 'Scheduled maintenance',
-    startDateTime: '2026-06-04 09:00:00',
-    endDateTime: '2026-06-04 16:30:00',
-    duration: '07:30:00',
-    status: 'Closed',
-    remarks: 'Seasonal coolant service completed',
-  },
-];
-
 const DownTimeEntry: React.FC = () => {
   const { role } = useAuth();
-  const [records, setRecords] = useState<DownTimeRecord[]>(initialRecords);
+  const navigate = useNavigate();
+  const { downtimeRecords, setDowntimeRecords, getActionsByTicket, deleteDowntimeRecord } = useDataContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [actionHistoryRecord, setActionHistoryRecord] = useState<DownTimeRecord | null>(null);
+  const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState<DownTimeRecord | null>(null);
   const [form] = Form.useForm();
+
+  const openActionHistory = (record: DownTimeRecord) => {
+    setActionHistoryRecord(record);
+    setIsHistoryVisible(true);
+  };
+
+  const closeActionHistory = () => {
+    setActionHistoryRecord(null);
+    setIsHistoryVisible(false);
+  };
 
   const isViewer = role === 'viewer';
   const isMaintenanceEngineer = role === 'manager';
@@ -206,7 +165,7 @@ const DownTimeEntry: React.FC = () => {
       const calculatedDuration = calculateDuration(startDateTime, endDateTime);
 
       if (editingRecord) {
-        setRecords(prev =>
+        setDowntimeRecords(prev =>
           prev.map(rec =>
             rec.id === editingRecord.id
               ? {
@@ -239,7 +198,7 @@ const DownTimeEntry: React.FC = () => {
           status: values.status || 'Open',
           remarks: values.remarks,
         };
-        setRecords(prev => [newRecord, ...prev]);
+        setDowntimeRecords(prev => [newRecord, ...prev]);
         message.success('Down Time record created successfully');
       }
       closeDrawer();
@@ -249,11 +208,11 @@ const DownTimeEntry: React.FC = () => {
   };
 
   const handleDelete = (record: DownTimeRecord) => {
-    setRecords(prev => prev.filter(r => r.id !== record.id));
+    deleteDowntimeRecord(record.id);
     message.success('Record deleted successfully');
   };
 
-  const filteredRecords = records.filter(record => {
+  const filteredRecords = downtimeRecords.filter(record => {
     const matchesSearch =
       !searchTerm ||
       record.ticketNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -321,14 +280,35 @@ const DownTimeEntry: React.FC = () => {
       render: (status: string) => <Badge color={getStatusColor(status)} text={status} />,
     },
     {
+      title: 'Linked Actions',
+      key: 'linkedActions',
+      width: 120,
+      render: (_: unknown, record: DownTimeRecord) => {
+        const actionCount = getActionsByTicket(record.id).length;
+        return <Tag color={actionCount ? 'blue' : 'default'}>{actionCount}</Tag>;
+      },
+    },
+    {
       title: 'Actions',
       key: 'actions',
-      width: 140,
+      width: 220,
       render: (_: unknown, record: DownTimeRecord) => (
-        <Space>
+        <Space wrap>
+          <Button type="link" size="small" onClick={() => openActionHistory(record)}>
+            View Actions
+          </Button>
           {canEdit && (
             <Button type="link" size="small" onClick={() => openDrawer(record)}>
               Edit
+            </Button>
+          )}
+          {canEdit && (
+            <Button
+              type="link"
+              size="small"
+              onClick={() => navigate('/actiontaken-entry', { state: { ticketId: record.id } })}
+            >
+              Add Action
             </Button>
           )}
           {canDelete && (
@@ -350,9 +330,9 @@ const DownTimeEntry: React.FC = () => {
     },
   ];
 
-  const openCount = records.filter(r => r.status === 'Open').length;
-  const inProgressCount = records.filter(r => r.status === 'In Progress').length;
-  const closedCount = records.filter(r => r.status === 'Closed').length;
+  const openCount = downtimeRecords.filter(r => r.status === 'Open').length;
+  const inProgressCount = downtimeRecords.filter(r => r.status === 'In Progress').length;
+  const closedCount = downtimeRecords.filter(r => r.status === 'Closed').length;
 
   return (
     <div style={{ padding: 24 }}>
@@ -402,7 +382,7 @@ const DownTimeEntry: React.FC = () => {
         <Col xs={24} sm={8} md={6}>
           <Card bordered={false} style={{ borderRadius: 12, textAlign: 'center' }}>
             <Title level={3} style={{ margin: '0' }}>
-              {records.length}
+              {downtimeRecords.length}
             </Title>
             <Text type="secondary" style={{ fontSize: 12 }}>
               Total Records
@@ -546,6 +526,53 @@ const DownTimeEntry: React.FC = () => {
             <Input.TextArea rows={4} placeholder="Enter additional remarks..." />
           </Form.Item>
         </Form>
+      </Drawer>
+
+      <Drawer
+        title={actionHistoryRecord ? `Action History - ${actionHistoryRecord.ticketNumber}` : 'Action History'}
+        placement="right"
+        onClose={closeActionHistory}
+        open={isHistoryVisible}
+        width={520}
+      >
+        {actionHistoryRecord ? (
+          <div style={{ display: 'grid', gap: 16 }}>
+            <Text strong>Machine</Text>
+            <Text>{actionHistoryRecord.machine}</Text>
+            <Text strong>Status</Text>
+            <Badge color={getStatusColor(actionHistoryRecord.status)} text={actionHistoryRecord.status} />
+
+            <Text strong>Linked actions</Text>
+            <div>
+              {getActionsByTicket(actionHistoryRecord.id).map(action => (
+                <Card key={action.id} size="small" style={{ marginBottom: 12 }}>
+                  <Row justify="space-between" align="middle" style={{ marginBottom: 8 }}>
+                    <Text strong>{action.actionNumber}</Text>
+                    <Badge
+                      color={action.status === 'Closed' ? 'green' : action.status === 'Open' ? 'orange' : 'cyan'}
+                      text={action.status}
+                    />
+                  </Row>
+                  <Text strong>When</Text>
+                  <p>{dayjs(action.actionDateTime).format('DD/MM/YYYY HH:mm')}</p>
+                  <Text strong>Action Taken</Text>
+                  <p>{action.actionTaken}</p>
+                  <Text strong>Root Cause</Text>
+                  <p>{action.rootCause}</p>
+                  <Text strong>Corrective Action</Text>
+                  <p>{action.correctiveAction}</p>
+                  <Text strong>Preventive Action</Text>
+                  <p>{action.preventiveAction}</p>
+                </Card>
+              ))}
+              {!getActionsByTicket(actionHistoryRecord.id).length && (
+                <Text type="secondary">No actions have been logged against this ticket yet.</Text>
+              )}
+            </div>
+          </div>
+        ) : (
+          <Text type="secondary">Select a ticket to view its action history.</Text>
+        )}
       </Drawer>
     </div>
   );

@@ -1,99 +1,50 @@
 import React, { useMemo } from 'react';
 import { Card, Row, Col, Typography, Table, Badge } from 'antd';
 import dayjs from 'dayjs';
+import { useDataContext } from '../context/DataContext';
 
 const { Title, Text } = Typography;
 
-// Mock downtime data from Down Time Entry
-const downTimeData = [
-  {
-    id: 1,
-    ticketNumber: 'DT-20260601-001',
-    machine: 'Press Unit 14',
-    department: 'Production',
-    startDateTime: '2026-06-01 08:30:00',
-    status: 'Closed',
-  },
-  {
-    id: 2,
-    ticketNumber: 'DT-20260602-002',
-    machine: 'Pump Station 3',
-    department: 'Fluid Systems',
-    startDateTime: '2026-06-02 14:20:00',
-    status: 'In Progress',
-  },
-  {
-    id: 3,
-    ticketNumber: 'DT-20260603-003',
-    machine: 'Conveyor A',
-    department: 'Material Handling',
-    startDateTime: '2026-06-03 11:00:00',
-    status: 'Open',
-  },
-  {
-    id: 4,
-    ticketNumber: 'DT-20260604-004',
-    machine: 'Cooling Tower',
-    department: 'Utilities',
-    startDateTime: '2026-06-04 09:00:00',
-    status: 'Closed',
-  },
-];
-
 const Dashboard: React.FC = () => {
-  // Calculate metrics from downtime data
+  const { downtimeRecords, actionRecords } = useDataContext();
+
   const metrics = useMemo(() => {
-    const openCount = downTimeData.filter(d => d.status === 'Open').length;
-    const closedCount = downTimeData.filter(d => d.status === 'Closed').length;
-    const inProgressCount = downTimeData.filter(d => d.status === 'In Progress').length;
-    
+    const openCount = downtimeRecords.filter(d => d.status === 'Open').length;
+    const closedCount = downtimeRecords.filter(d => d.status === 'Closed').length;
+    const inProgressCount = downtimeRecords.filter(d => d.status === 'In Progress').length;
+
+    const openActions = actionRecords.filter(a => a.status === 'Open').length;
+    const resolvedActions = actionRecords.filter(a => a.status === 'Resolved' || a.status === 'Closed').length;
+
     return {
       openDowntime: openCount,
       closedDowntime: closedCount,
       inProgressDowntime: inProgressCount,
+      openActions,
+      resolvedActions,
     };
-  }, []);
+  }, [downtimeRecords, actionRecords]);
 
   const kpiMetrics = [
-    { key: 'total-machines', label: 'Total Machines', value: 248, color: 'blue' },
-    { key: 'active-machines', label: 'Active Machines', value: 198, color: 'green' },
     { key: 'open-downtime', label: 'Open Downtime', value: metrics.openDowntime, color: 'orange' },
-    { key: 'closed-downtime', label: 'Closed Downtime', value: metrics.closedDowntime, color: 'purple' },
     { key: 'in-progress-downtime', label: 'In Progress', value: metrics.inProgressDowntime, color: 'cyan' },
-    { key: 'pm-due', label: 'PM Due', value: 12, color: 'red' },
+    { key: 'closed-downtime', label: 'Closed Downtime', value: metrics.closedDowntime, color: 'green' },
+    { key: 'open-actions', label: 'Open Actions', value: metrics.openActions, color: 'orange' },
+    { key: 'resolved-actions', label: 'Resolved Actions', value: metrics.resolvedActions, color: 'green' },
+    { key: 'total-downtime', label: 'Downtime Tickets', value: downtimeRecords.length, color: 'purple' },
   ];
 
-  // Recent downtime activities
-  const recentActivities = [
-    {
-      key: '1',
-      activity: `Opened downtime ticket ${downTimeData[2].ticketNumber} for ${downTimeData[2].machine}`,
-      owner: 'Riya Patel',
-      status: 'Open',
-      time: '2 hours ago',
-    },
-    {
-      key: '2',
-      activity: `In progress: ${downTimeData[1].ticketNumber} - ${downTimeData[1].machine}`,
-      owner: 'Arjun Singh',
-      status: 'In Progress',
-      time: '4 hours ago',
-    },
-    {
-      key: '3',
-      activity: `Closed downtime ticket ${downTimeData[0].ticketNumber}`,
-      owner: 'Priya Rao',
-      status: 'Closed',
-      time: '1 day ago',
-    },
-    {
-      key: '4',
-      activity: `Closed downtime ticket ${downTimeData[3].ticketNumber}`,
-      owner: 'Sanjay Kumar',
-      status: 'Closed',
-      time: '1 day ago',
-    },
-  ];
+  const recentActivities = actionRecords
+    .slice()
+    .sort((a, b) => dayjs(b.actionDateTime).diff(dayjs(a.actionDateTime)))
+    .slice(0, 4)
+    .map((action, index) => ({
+      key: String(index),
+      activity: `${action.actionNumber} on ${action.ticketNumber}: ${action.actionTaken}`,
+      owner: action.maintenanceEngineer,
+      status: action.status,
+      time: dayjs(action.actionDateTime).format('DD/MM/YYYY HH:mm'),
+    }));
 
   const activityColumns = [
     { title: 'Activity', dataIndex: 'activity', key: 'activity' },
