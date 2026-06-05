@@ -1,64 +1,115 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, Row, Col, Typography, Table, Badge } from 'antd';
+import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
-const kpiMetrics = [
-  { key: 'total-machines', label: 'Total Machines', value: 248, color: 'blue' },
-  { key: 'active-machines', label: 'Active Machines', value: 198, color: 'green' },
-  { key: 'open-downtime', label: 'Open Downtime', value: 18, color: 'orange' },
-  { key: 'closed-downtime', label: 'Closed Downtime', value: 34, color: 'purple' },
-  { key: 'pm-due', label: 'PM Due', value: 12, color: 'red' },
-  { key: 'pm-completed', label: 'PM Completed', value: 76, color: 'cyan' },
-];
-
-const recentActivities = [
+// Mock downtime data from Down Time Entry
+const downTimeData = [
   {
-    key: '1',
-    activity: 'Created Downtime log for Machine B-24',
-    owner: 'Riya Patel',
-    status: 'Open',
-    time: '12 mins ago',
+    id: 1,
+    ticketNumber: 'DT-20260601-001',
+    machine: 'Press Unit 14',
+    department: 'Production',
+    startDateTime: '2026-06-01 08:30:00',
+    status: 'Closed',
   },
   {
-    key: '2',
-    activity: 'Completed PM inspection for Press Unit 14',
-    owner: 'Arjun Singh',
-    status: 'Completed',
-    time: '45 mins ago',
-  },
-  {
-    key: '3',
-    activity: 'Assigned action taken review to maintenance team',
-    owner: 'Priya Rao',
-    status: 'Pending',
-    time: '1 hr ago',
-  },
-  {
-    key: '4',
-    activity: 'Updated scheduled maintenance for Conveyor A',
-    owner: 'Sanjay Kumar',
+    id: 2,
+    ticketNumber: 'DT-20260602-002',
+    machine: 'Pump Station 3',
+    department: 'Fluid Systems',
+    startDateTime: '2026-06-02 14:20:00',
     status: 'In Progress',
-    time: '2 hrs ago',
   },
-];
-
-const activityColumns = [
-  { title: 'Activity', dataIndex: 'activity', key: 'activity' },
-  { title: 'Owner', dataIndex: 'owner', key: 'owner' },
   {
-    title: 'Status',
-    dataIndex: 'status',
-    key: 'status',
-    render: (status: string) => {
-      const color = status === 'Completed' ? 'green' : status === 'Open' ? 'orange' : 'red';
-      return <Badge color={color} text={status} />;
-    },
+    id: 3,
+    ticketNumber: 'DT-20260603-003',
+    machine: 'Conveyor A',
+    department: 'Material Handling',
+    startDateTime: '2026-06-03 11:00:00',
+    status: 'Open',
   },
-  { title: 'Time', dataIndex: 'time', key: 'time' },
+  {
+    id: 4,
+    ticketNumber: 'DT-20260604-004',
+    machine: 'Cooling Tower',
+    department: 'Utilities',
+    startDateTime: '2026-06-04 09:00:00',
+    status: 'Closed',
+  },
 ];
 
 const Dashboard: React.FC = () => {
+  // Calculate metrics from downtime data
+  const metrics = useMemo(() => {
+    const openCount = downTimeData.filter(d => d.status === 'Open').length;
+    const closedCount = downTimeData.filter(d => d.status === 'Closed').length;
+    const inProgressCount = downTimeData.filter(d => d.status === 'In Progress').length;
+    
+    return {
+      openDowntime: openCount,
+      closedDowntime: closedCount,
+      inProgressDowntime: inProgressCount,
+    };
+  }, []);
+
+  const kpiMetrics = [
+    { key: 'total-machines', label: 'Total Machines', value: 248, color: 'blue' },
+    { key: 'active-machines', label: 'Active Machines', value: 198, color: 'green' },
+    { key: 'open-downtime', label: 'Open Downtime', value: metrics.openDowntime, color: 'orange' },
+    { key: 'closed-downtime', label: 'Closed Downtime', value: metrics.closedDowntime, color: 'purple' },
+    { key: 'in-progress-downtime', label: 'In Progress', value: metrics.inProgressDowntime, color: 'cyan' },
+    { key: 'pm-due', label: 'PM Due', value: 12, color: 'red' },
+  ];
+
+  // Recent downtime activities
+  const recentActivities = [
+    {
+      key: '1',
+      activity: `Opened downtime ticket ${downTimeData[2].ticketNumber} for ${downTimeData[2].machine}`,
+      owner: 'Riya Patel',
+      status: 'Open',
+      time: '2 hours ago',
+    },
+    {
+      key: '2',
+      activity: `In progress: ${downTimeData[1].ticketNumber} - ${downTimeData[1].machine}`,
+      owner: 'Arjun Singh',
+      status: 'In Progress',
+      time: '4 hours ago',
+    },
+    {
+      key: '3',
+      activity: `Closed downtime ticket ${downTimeData[0].ticketNumber}`,
+      owner: 'Priya Rao',
+      status: 'Closed',
+      time: '1 day ago',
+    },
+    {
+      key: '4',
+      activity: `Closed downtime ticket ${downTimeData[3].ticketNumber}`,
+      owner: 'Sanjay Kumar',
+      status: 'Closed',
+      time: '1 day ago',
+    },
+  ];
+
+  const activityColumns = [
+    { title: 'Activity', dataIndex: 'activity', key: 'activity' },
+    { title: 'Owner', dataIndex: 'owner', key: 'owner' },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => {
+        const color = status === 'Closed' ? 'green' : status === 'Open' ? 'orange' : 'cyan';
+        return <Badge color={color} text={status} />;
+      },
+    },
+    { title: 'Time', dataIndex: 'time', key: 'time' },
+  ];
+
   return (
     <div style={{ padding: 24 }}>
       <div style={{ marginBottom: 24 }}>

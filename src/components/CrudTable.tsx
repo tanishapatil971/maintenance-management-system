@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Button, Modal, Form, Input } from 'antd';
+import { Table, Button, Modal, Form, Input, Popconfirm, message } from 'antd';
 import type { TableColumnType } from 'antd';
 import { useAuth } from '../context/useAuth';
 
@@ -16,6 +16,8 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
   const { items, setItems, columns, entityName } = props;
   const { role } = useAuth();
   const isViewer = role === 'viewer';
+  const isAdmin = role === 'admin';
+  const isMaintenance = role === 'manager';
   const [isModalVisible, setIsModalVisible] = React.useState(false);
   const [editingItem, setEditingItem] = React.useState<T | null>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -46,14 +48,30 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
     setIsModalVisible(false);
   };
 
+  const handleDelete = (record: T) => {
+    setItems(prev => prev.filter(it => it.id !== (record as any).id));
+    message.success(`${entityName} deleted`);
+  };
+
   const actionColumn: TableColumnType<T> = {
     title: 'Actions',
     key: 'actions',
-    width: 120,
+    width: 160,
     render: (_: unknown, record: T) => (
-      <Button type="link" onClick={() => showEdit(record)}>
-        Edit
-      </Button>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {(isAdmin || isMaintenance) && (
+          <Button type="link" onClick={() => showEdit(record)}>
+            Edit
+          </Button>
+        )}
+        {isAdmin && (
+          <Popconfirm title={`Delete this ${entityName}?`} onConfirm={() => handleDelete(record)} okText="Delete" cancelText="Cancel">
+            <Button type="link" danger>
+              Delete
+            </Button>
+          </Popconfirm>
+        )}
+      </div>
     ),
   };
 
@@ -71,16 +89,35 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
 
   const formItems = columns
     .filter(col => col.dataIndex && col.dataIndex !== 'id')
-    .map(col => (
-      <Form.Item
-        key={col.key as string}
-        name={col.dataIndex as string}
-        label={(col.title as string) ?? String(col.dataIndex)}
-        rules={[{ required: true }]}
-      >
-        <Input />
-      </Form.Item>
-    ));
+    .map(col => {
+      const name = col.dataIndex as string;
+      const label = (col.title as string) ?? name;
+      const rules: any[] = [
+        { required: true, message: `${label} is required` },
+      ];
+
+      // Add uniqueness validator for common identifier fields
+      if (name.toLowerCase() === 'code' || name.toLowerCase() === 'name' || name.toLowerCase() === 'email') {
+        rules.push({
+          validator: async (_: any, value: any) => {
+            if (!value) return Promise.resolve();
+            const duplicate = items.some(it => {
+              if (editingItem && (it as any).id === (editingItem as any).id) return false;
+              const field = (it as any)[name];
+              return field !== undefined && String(field).toLowerCase() === String(value).toLowerCase();
+            });
+            if (duplicate) return Promise.reject(new Error(`${label} already exists`));
+            return Promise.resolve();
+          },
+        });
+      }
+
+      return (
+        <Form.Item key={col.key as string} name={name} label={label} rules={rules}>
+          <Input />
+        </Form.Item>
+      );
+    });
 
   return (
     <div>
@@ -92,7 +129,7 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
           allowClear
           style={{ minWidth: 280, flex: 1 }}
         />
-        {!isViewer && (
+        {(isAdmin || isMaintenance) && (
           <Button type="primary" onClick={showAdd}>
             Add {entityName}
           </Button>
