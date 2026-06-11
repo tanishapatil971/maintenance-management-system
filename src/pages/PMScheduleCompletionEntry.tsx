@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { useDataContext } from '../context/DataContext';
 
 interface PMScheduleCompletionEntryRecord {
   id: number;
@@ -17,14 +18,18 @@ const columns: TableColumnType<PMScheduleCompletionEntryRecord>[] = [
   { title: 'Technician', dataIndex: 'technician', key: 'technician' },
 ];
 
-const initialRecords: PMScheduleCompletionEntryRecord[] = [
+// Fallback initial data if context is empty (useful for first load)
+const fallbackRecords: PMScheduleCompletionEntryRecord[] = [
   { id: 1, machine: 'Press Unit 14', completedDate: '2026-06-01', result: 'Completed', technician: 'Sanjay Kumar' },
   { id: 2, machine: 'Conveyor A', completedDate: '2026-06-02', result: 'Pending', technician: 'Arjun Singh' },
   { id: 3, machine: 'Cooling Tower', completedDate: '2026-05-29', result: 'Completed', technician: 'Neha Sharma' },
 ];
 
 const PMScheduleCompletionEntry: React.FC = () => {
-  const [items, setItems] = useState<PMScheduleCompletionEntryRecord[]>(initialRecords);
+  const { pmCompletions, setPmCompletions } = useDataContext();
+  const items = pmCompletions.length ? pmCompletions : fallbackRecords;
+  const setItems = setPmCompletions;
+
   return (
     <MasterPage<PMScheduleCompletionEntryRecord>
       title="PM Schedule Completion Entry"
