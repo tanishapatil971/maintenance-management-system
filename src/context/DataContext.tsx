@@ -57,6 +57,73 @@ export interface TBMScheduleRecord {
   notes?: string;
 }
 
+import React, { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import dayjs from 'dayjs';
+
+export type DowntimeStatus = 'Open' | 'In Progress' | 'Closed';
+export type ActionStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+
+export interface DownTimeRecord {
+  id: number;
+  ticketNumber: string;
+  machine: string;
+  machineId: number;
+  department: string;
+  downTimeReason: string;
+  startDateTime: string;
+  endDateTime: string;
+  duration: string;
+  status: DowntimeStatus;
+  remarks: string;
+}
+
+export interface ActionTakenRecord {
+  id: number;
+  actionNumber: string;
+  ticketId: number;
+  ticketNumber: string;
+  machine: string;
+  actionTaken: string;
+  maintenanceEngineer: string;
+  actionDateTime: string;
+  rootCause: string;
+  correctiveAction: string;
+  preventiveAction: string;
+  remarks: string;
+  status: ActionStatus;
+}
+
+export interface Machine {
+  id: number;
+  name: string;
+  department: string;
+}
+
+export type Frequency = 'Daily' | 'Weekly' | 'Monthly' | 'Quarterly' | 'Yearly';
+
+export type ScheduleStatus = 'Upcoming' | 'Due' | 'Overdue' | 'Completed';
+
+// TBM Schedule Record Interface
+export interface TBMScheduleRecord {
+  id: number;
+  machineId: number;
+  machine: string;
+  plannedDate: string;
+  cycle: string;
+  nextDueDate: string;
+  status: ScheduleStatus;
+  owner: string;
+  notes?: string;
+}
+
+export interface AuditLogEntry {
+  timestamp: string;
+  user: string;
+  module: string;
+  action: string;
+  recordReference: string;
+}
+
 // Context Props Interface
 export interface DataContextProps {
   downtimeRecords: DownTimeRecord[];
@@ -72,6 +139,130 @@ export interface DataContextProps {
   machines: Machine[];
   pmSchedules: PMScheduleRecord[];
   tbmSchedules: TBMScheduleRecord[];
+  auditLogs: AuditLogEntry[];
+  addAuditLog: (entry: Omit<AuditLogEntry, 'id'>) => void;
+  addPMSchedule: (s: Omit<PMScheduleRecord, 'id' | 'nextDueDate' | 'status'>) => void;
+  updatePMSchedule: (s: PMScheduleRecord) => void;
+  deletePMSchedule: (id: number) => void;
+  addTBMSchedule: (s: Omit<TBMScheduleRecord, 'id' | 'nextDueDate' | 'status'>) => void;
+  updateTBMSchedule: (s: TBMScheduleRecord) => void;
+  deleteTBMSchedule: (id: number) => void;
+  getPMSchedules: () => PMScheduleRecord[];
+  getTBMSchedules: () => TBMScheduleRecord[];
+  pmCompletions: PMScheduleCompletionRecord[];
+  setPmCompletions: React.Dispatch<React.SetStateAction<PMScheduleCompletionRecord[]>>;
+  tbmCompletions: TBMScheduleCompletionRecord[];
+  setTbmCompletions: React.Dispatch<React.SetStateAction<TBMScheduleCompletionRecord[]>>;
+}
+
+export interface PMScheduleRecord {
+  id: number;
+  machineId: number;
+  machine: string;
+  category: string;
+  frequency: Frequency;
+  scheduledDate: string; // initial scheduled date
+  nextDueDate: string; // computed
+  status: ScheduleStatus;
+  assignedTo: string;
+  notes?: string;
+  completedDate?: string;
+}
+
+export interface TBMScheduleCompletionRecord {
+  id: number;
+  scheduleId: number; // reference to TBMScheduleRecord
+  machine: string;
+  completedDate: string;
+  inspectionResult: 'Pass' | 'Fail';
+  performedBy: string;
+  remarks?: string;
+  status: 'Completed' | 'Delayed' | 'Pending';
+}
+
+const DataContext = createContext<DataContextProps | undefined>(undefined);
+
+export const DataProvider = ({ children }: { children: ReactNode }) => {
+  const [downtimeRecords, setDowntimeRecords] = useState<DownTimeRecord[]>(initialDowntimeRecords);
+  const [actionRecords, setActionRecords] = useState<ActionTakenRecord[]>(initialActionRecords);
+  const [machines, setMachines] = useState<Machine[]>(initialMachines);
+  const [pmSchedules, setPMSchedules] = useState<PMScheduleRecord[]>(initialPMSchedules);
+  const [tbmSchedules, setTBMSchedules] = useState<TBMScheduleRecord[]>(initialTBMSchedules);
+  const [pmCompletions, setPmCompletions] = useState<PMScheduleCompletionRecord[]>([]);
+  const [tbmCompletions, setTbmCompletions] = useState<TBMScheduleCompletionRecord[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+
+  const addAuditLog = (entry: Omit<AuditLogEntry, 'id'>) => {
+    const newEntry = { id: Date.now(), ...entry } as AuditLogEntry;
+    setAuditLogs(prev => [newEntry, ...prev]);
+  };
+
+  // ... (rest of the existing logic unchanged) ...
+
+  const value = useMemo(
+    () => ({
+      downtimeRecords,
+      setDowntimeRecords,
+      actionRecords,
+      setActionRecords,
+      addAction,
+      updateAction,
+      deleteAction,
+      deleteDowntimeRecord,
+      getActionsByTicket,
+      getTicketById,
+      machines,
+      pmSchedules,
+      tbmSchedules,
+      auditLogs,
+      addAuditLog,
+      addPMSchedule,
+      updatePMSchedule,
+      deletePMSchedule,
+      addTBMSchedule,
+      updateTBMSchedule,
+      deleteTBMSchedule,
+      getPMSchedules,
+      getTBMSchedules,
+      pmCompletions,
+      setPmCompletions,
+      tbmCompletions,
+      setTbmCompletions,
+    }),
+    [downtimeRecords, actionRecords, auditLogs, pmSchedules, tbmSchedules, pmCompletions, tbmCompletions]
+  );
+
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+};
+
+export const useDataContext = () => {
+  const context = useContext(DataContext);
+  if (!context) {
+    throw new Error('useDataContext must be used within DataProvider');
+  }
+  return context;
+};
+export interface AuditLogEntry {
+  timestamp: string;
+  user: string;
+  module: string;
+  action: string;
+  recordReference: string;
+}
+  downtimeRecords: DownTimeRecord[];
+  setDowntimeRecords: React.Dispatch<React.SetStateAction<DownTimeRecord[]>>;
+  actionRecords: ActionTakenRecord[];
+  setActionRecords: React.Dispatch<React.SetStateAction<ActionTakenRecord[]>>;
+  addAction: (action: Omit<ActionTakenRecord, 'id' | 'actionNumber' | 'ticketNumber' | 'machine'>) => void;
+  updateAction: (updatedAction: ActionTakenRecord) => void;
+  deleteAction: (actionId: number) => void;
+  deleteDowntimeRecord: (ticketId: number) => void;
+  getActionsByTicket: (ticketId: number) => ActionTakenRecord[];
+  getTicketById: (ticketId: number) => DownTimeRecord | undefined;
+  machines: Machine[];
+  pmSchedules: PMScheduleRecord[];
+  auditLogs: AuditLogEntry[];
+  addAuditLog: (entry: Omit<AuditLogEntry, 'id'>) => void;
   addPMSchedule: (s: Omit<PMScheduleRecord, 'id' | 'nextDueDate' | 'status'>) => void;
   updatePMSchedule: (s: PMScheduleRecord) => void;
   deletePMSchedule: (id: number) => void;
@@ -273,11 +464,25 @@ const generateActionNumber = (existingCount: number) => {
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [downtimeRecords, setDowntimeRecords] = useState<DownTimeRecord[]>(initialDowntimeRecords);
+  // Audit log state
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [actionRecords, setActionRecords] = useState<ActionTakenRecord[]>(initialActionRecords);
   const [machines, setMachines] = useState<Machine[]>(initialMachines);
   const [pmCompletions, setPmCompletions] = useState<PMScheduleCompletionRecord[]>([]);
   const [tbmCompletions, setTbmCompletions] = useState<TBMScheduleCompletionRecord[]>([]);
-  // State for schedules
+  // Helper to add audit log entries
+  const addAuditLog = (entry: Omit<AuditLogEntry, 'id'>) => {
+    const newEntry = { id: Date.now(), ...entry };
+    setAuditLogs(prev => [newEntry, ...prev]);
+  };
+  // State for audit logs
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+
+  // Helper to add audit log entries
+  const addAuditLog = (entry: Omit<AuditLogEntry, 'id'>) => {
+    const newEntry = { id: Date.now(), ...entry } as AuditLogEntry;
+    setAuditLogs(prev => [newEntry, ...prev]);
+  };
   const [pmSchedules, setPMSchedules] = useState<PMScheduleRecord[]>(initialPMSchedules);
   const [tbmSchedules, setTBMSchedules] = useState<TBMScheduleRecord[]>(initialTBMSchedules);
 
@@ -292,14 +497,35 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       ...action,
     };
     setActionRecords(prev => [newAction, ...prev]);
+    addAuditLog({
+      timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      user: 'CurrentUser', // placeholder, could be derived from AuthContext
+      module: 'ActionTaken',
+      action: 'Record Created',
+      recordReference: `Action#${newAction.id}`,
+    });
   };
 
   const updateAction = (updatedAction: ActionTakenRecord) => {
     setActionRecords(prev => prev.map(item => (item.id === updatedAction.id ? updatedAction : item)));
+    addAuditLog({
+      timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      user: 'CurrentUser',
+      module: 'ActionTaken',
+      action: 'Record Updated',
+      recordReference: `Action#${updatedAction.id}`,
+    });
   };
 
   const deleteAction = (actionId: number) => {
     setActionRecords(prev => prev.filter(item => item.id !== actionId));
+    addAuditLog({
+      timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      user: 'CurrentUser',
+      module: 'ActionTaken',
+      action: 'Record Deleted',
+      recordReference: `Action#${actionId}`,
+    });
   };
 
   // Schedule helpers
@@ -409,6 +635,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const deleteDowntimeRecord = (ticketId: number) => {
     setDowntimeRecords(prev => prev.filter(item => item.id !== ticketId));
     setActionRecords(prev => prev.filter(item => item.ticketId !== ticketId));
+    addAuditLog({
+      timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      user: 'CurrentUser',
+      module: 'DownTime',
+      action: 'Record Deleted',
+      recordReference: `Downtime#${ticketId}`,
+    });
   };
 
   const getActionsByTicket = (ticketId: number) =>
@@ -464,8 +697,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       getTBMSchedules,
       pmCompletions,
       setPmCompletions,
+      tbmSchedules,
+      addPMSchedule,
+      updatePMSchedule,
+      deletePMSchedule,
+      addTBMSchedule,
+      updateTBMSchedule,
+      deleteTBMSchedule,
+      getPMSchedules,
+      getTBMSchedules,
+      pmCompletions,
+      setPmCompletions,
       tbmCompletions,
       setTbmCompletions,
+      auditLogs,
+      addAuditLog,
     }),
     [downtimeRecords, actionRecords, pmCompletions, tbmCompletions, pmSchedules, tbmSchedules]
   );
