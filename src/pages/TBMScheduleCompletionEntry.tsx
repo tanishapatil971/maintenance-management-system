@@ -1,7 +1,8 @@
 import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
-import { useDataContext, TBMScheduleCompletionRecord } from '../context/DataContext';
+import { useDataContext } from '../context/DataContext';
+import type { TBMScheduleCompletionRecord } from '../context/DataContext';
 
 const columns: TableColumnType<TBMScheduleCompletionRecord>[] = [
   { title: 'Machine', dataIndex: 'machine', key: 'machine' },

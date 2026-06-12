@@ -1,7 +1,8 @@
 import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
-import { useDataContext, PMScheduleCompletionRecord } from '../context/DataContext';
+import { useDataContext } from '../context/DataContext';
+import type { PMScheduleCompletionRecord } from '../context/DataContext';
 
 const columns: TableColumnType<PMScheduleCompletionRecord>[] = [
   { title: 'Machine', dataIndex: 'machine', key: 'machine' },

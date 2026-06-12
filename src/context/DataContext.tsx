@@ -412,8 +412,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       id: Date.now(),
       nextDueDate: nextDue,
       status,
-      machine: machine?.name || s.machineId.toString(),
       ...s,
+      machine: machine?.name || s.machineId.toString(),
     };
     setTBMSchedules(prev => [newItem, ...prev]);
   };
@@ -426,8 +426,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       id: Date.now(),
       nextDueDate: nextDue,
       status,
-      machine: machine?.name || s.machineId.toString(),
       ...s,
+      machine: machine?.name || s.machineId.toString(),
+      
     };
     setPMSchedules(prev => [newItem, ...prev]);
   };
