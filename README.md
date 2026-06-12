@@ -64,9 +64,7 @@ EMMS centralises all maintenance data, automates schedule compliance checks, and
 |-------|------------|
 | **Frontend** | React (TypeScript), Ant Design, React Router, Day.js |
 | **State Management** | Context API (single DataContext) with mock data persistence in memory |
-| **Build Tool** | Vite (via 
-pm run dev / 
-pm run build) |
+| **Build Tool** | Vite (via npm run dev / npm run build) |
 | **Styling** | Vanilla CSS with custom design tokens (gradient backgrounds, glass-morphism, micro-animations) |
 | **Version Control** | Git |
 
