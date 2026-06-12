@@ -81,37 +81,4 @@ src/
 +- index.css         # Global design system (colors, typography, animations)
 +- index.tsx         # Application entry point
 `
-
-## Installation Guide
-1. **Prerequisites**
-   - Node.js =18
-   - npm (bundled with Node)
-2. **Clone the repository**
-   `ash
-   git clone <repository-url>
-   cd maintenance-system
-   `
-3. **Install dependencies**
-   `ash
-   npm install
-   `
-4. **Run the development server**
-   `ash
-   npm run dev
-   `
-   The app will be available at http://localhost:5173.
-5. **Build for production** (optional)
-   `ash
-   npm run build
-   `
-   The static bundle is emitted to dist/.
-
-## Future Enhancements
-- **Persist data** – Integrate a lightweight IndexedDB layer or local JSON file storage.
-- **Advanced analytics** – Add charts for MTBF, MTTR, and cost analysis.
-- **Notification engine** – Email/SMS alerts for upcoming PM/TBM due dates.
-- **Role hierarchy** – Fine-grained permission matrix beyond the three static roles.
-- **Internationalisation (i18n)** – Multi-language UI support.
-- **Accessibility compliance** – WCAG-AA certification.
-
 ---
