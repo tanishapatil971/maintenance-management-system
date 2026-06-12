@@ -1,28 +1,21 @@
 import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
-import { useDataContext } from '../context/DataContext';
+import { useDataContext, TBMScheduleCompletionRecord } from '../context/DataContext';
 
-interface TBMScheduleCompletionEntryRecord {
-  id: number;
-  machine: string;
-  completedDate: string;
-  inspectionResult: 'Pass' | 'Fail';
-  performedBy: string;
-}
-
-const columns: TableColumnType<TBMScheduleCompletionEntryRecord>[] = [
+const columns: TableColumnType<TBMScheduleCompletionRecord>[] = [
   { title: 'Machine', dataIndex: 'machine', key: 'machine' },
   { title: 'Completed Date', dataIndex: 'completedDate', key: 'completedDate' },
   { title: 'Inspection Result', dataIndex: 'inspectionResult', key: 'inspectionResult' },
   { title: 'Performed By', dataIndex: 'performedBy', key: 'performedBy' },
+  { title: 'Status', dataIndex: 'status', key: 'status' },
 ];
 
 const TBMScheduleCompletionEntry: React.FC = () => {
   const { tbmCompletions, setTbmCompletions } = useDataContext();
 
   return (
-    <MasterPage<TBMScheduleCompletionEntryRecord>
+    <MasterPage<TBMScheduleCompletionRecord>
       title="TBM Schedule Completion Entry"
       description="Capture completion results for TBM (Time-Based Maintenance) schedules."
       items={tbmCompletions}
