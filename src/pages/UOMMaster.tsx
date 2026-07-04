@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface UOM {
   id: number;
@@ -21,7 +22,7 @@ const initialUOM: UOM[] = [
 ];
 
 const UOMMaster: React.FC = () => {
-  const [items, setItems] = useState<UOM[]>(initialUOM);
+  const [items, setItems] = usePersistentState<UOM[]>('maintenance-uom-master', initialUOM);
   return (
     <MasterPage<UOM>
       title="UOM Master"

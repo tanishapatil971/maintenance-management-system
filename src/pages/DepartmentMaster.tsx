@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface Department {
   id: number;
@@ -21,7 +22,7 @@ const initialDepartments: Department[] = [
 ];
 
 const DepartmentMaster: React.FC = () => {
-  const [items, setItems] = useState<Department[]>(initialDepartments);
+  const [items, setItems] = usePersistentState<Department[]>('maintenance-department-master', initialDepartments);
   return (
     <MasterPage<Department>
       title="Department Master"

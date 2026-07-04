@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface MaintenanceType {
   id: number;
@@ -23,7 +24,7 @@ const initialTypes: MaintenanceType[] = [
 ];
 
 const MaintenanceTypeMaster: React.FC = () => {
-  const [items, setItems] = useState<MaintenanceType[]>(initialTypes);
+  const [items, setItems] = usePersistentState<MaintenanceType[]>('maintenance-type-master', initialTypes);
   return (
     <MasterPage<MaintenanceType>
       title="Maintenance Type Master"

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface ActionTaken {
   id: number;
@@ -23,7 +24,7 @@ const initialActions: ActionTaken[] = [
 ];
 
 const ActionTakenMaster: React.FC = () => {
-  const [items, setItems] = useState<ActionTaken[]>(initialActions);
+  const [items, setItems] = usePersistentState<ActionTaken[]>('maintenance-actiontaken-master', initialActions);
   return (
     <MasterPage<ActionTaken>
       title="Action Taken Master"

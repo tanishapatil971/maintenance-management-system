@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import dayjs from 'dayjs';
+import { usePersistentState } from '../utils/persistence';
 
 export type DowntimeStatus = 'Open' | 'In Progress' | 'Closed';
 export type ActionStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
@@ -287,14 +288,14 @@ const generateActionNumber = (existingCount: number) => {
 };
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-  const [downtimeRecords, setDowntimeRecords] = useState<DownTimeRecord[]>(initialDowntimeRecords);
-  const [actionRecords, setActionRecords] = useState<ActionTakenRecord[]>(initialActionRecords);
-  const [machines] = useState<Machine[]>(initialMachines);
-  const [pmSchedules, setPMSchedules] = useState<PMScheduleRecord[]>(initialPMSchedules);
-  const [tbmSchedules, setTBMSchedules] = useState<TBMScheduleRecord[]>(initialTBMSchedules);
-  const [pmCompletions, setPmCompletions] = useState<PMScheduleCompletionRecord[]>([]);
-  const [tbmCompletions, setTbmCompletions] = useState<TBMScheduleCompletionRecord[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [downtimeRecords, setDowntimeRecords] = usePersistentState<DownTimeRecord[]>('maintenance-downtime-records', initialDowntimeRecords);
+  const [actionRecords, setActionRecords] = usePersistentState<ActionTakenRecord[]>('maintenance-action-records', initialActionRecords);
+  const [machines] = usePersistentState<Machine[]>('maintenance-machines', initialMachines);
+  const [pmSchedules, setPMSchedules] = usePersistentState<PMScheduleRecord[]>('maintenance-pm-schedules', initialPMSchedules);
+  const [tbmSchedules, setTBMSchedules] = usePersistentState<TBMScheduleRecord[]>('maintenance-tbm-schedules', initialTBMSchedules);
+  const [pmCompletions, setPmCompletions] = usePersistentState<PMScheduleCompletionRecord[]>('maintenance-pm-completions', []);
+  const [tbmCompletions, setTbmCompletions] = usePersistentState<TBMScheduleCompletionRecord[]>('maintenance-tbm-completions', []);
+  const [auditLogs, setAuditLogs] = usePersistentState<AuditLogEntry[]>('maintenance-audit-logs', []);
 
   const addAuditLog = (entry: Omit<AuditLogEntry, 'id'>) => {
     const newEntry = { id: Date.now(), ...entry } as AuditLogEntry;
@@ -512,7 +513,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       auditLogs,
       addAuditLog,
     }),
-    [downtimeRecords, actionRecords, pmCompletions, tbmCompletions, pmSchedules, tbmSchedules, auditLogs]
+    [downtimeRecords, actionRecords, machines, pmCompletions, tbmCompletions, pmSchedules, tbmSchedules, auditLogs]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

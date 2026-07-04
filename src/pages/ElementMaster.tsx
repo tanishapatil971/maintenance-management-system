@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface Element {
   id: number;
@@ -23,7 +24,7 @@ const initialElements: Element[] = [
 ];
 
 const ElementMaster: React.FC = () => {
-  const [items, setItems] = useState<Element[]>(initialElements);
+  const [items, setItems] = usePersistentState<Element[]>('maintenance-element-master', initialElements);
   return (
     <MasterPage<Element>
       title="Element Master"

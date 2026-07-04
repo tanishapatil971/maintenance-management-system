@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface Checklist {
   id: number;
@@ -23,7 +24,7 @@ const initialChecklists: Checklist[] = [
 ];
 
 const ChecklistMaster: React.FC = () => {
-  const [items, setItems] = useState<Checklist[]>(initialChecklists);
+  const [items, setItems] = usePersistentState<Checklist[]>('maintenance-checklist-master', initialChecklists);
   return (
     <MasterPage<Checklist>
       title="Checklist Master"

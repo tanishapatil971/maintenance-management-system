@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface DownTimeItem {
   id: number;
@@ -25,7 +26,7 @@ const initialDownTimes: DownTimeItem[] = [
 ];
 
 const DownTimeMaster: React.FC = () => {
-  const [items, setItems] = useState<DownTimeItem[]>(initialDownTimes);
+  const [items, setItems] = usePersistentState<DownTimeItem[]>('maintenance-downtime-master', initialDownTimes);
   return (
     <MasterPage<DownTimeItem>
       title="Down Time Master"

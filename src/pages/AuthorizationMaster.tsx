@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface Authorization {
   id: number;
@@ -23,7 +24,7 @@ const initialAuthorizations: Authorization[] = [
 ];
 
 const AuthorizationMaster: React.FC = () => {
-  const [items, setItems] = useState<Authorization[]>(initialAuthorizations);
+  const [items, setItems] = usePersistentState<Authorization[]>('maintenance-authorization-master', initialAuthorizations);
   return (
     <MasterPage<Authorization>
       title="Authorization Master"

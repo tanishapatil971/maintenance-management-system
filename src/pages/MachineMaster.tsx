@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface Machine {
   id: number;
@@ -27,7 +28,7 @@ const initialMachines: Machine[] = [
 ];
 
 const MachineMaster: React.FC = () => {
-  const [items, setItems] = useState<Machine[]>(initialMachines);
+  const [items, setItems] = usePersistentState<Machine[]>('maintenance-machine-master', initialMachines);
   return (
     <MasterPage<Machine>
       title="Machine Master"

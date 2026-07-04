@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface Spare {
   id: number;
@@ -23,7 +24,7 @@ const initialSpares: Spare[] = [
 ];
 
 const SpareMaster: React.FC = () => {
-  const [items, setItems] = useState<Spare[]>(initialSpares);
+  const [items, setItems] = usePersistentState<Spare[]>('maintenance-spare-master', initialSpares);
   return (
     <MasterPage<Spare>
       title="Spare Master"

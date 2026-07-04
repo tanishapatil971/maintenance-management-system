@@ -29,8 +29,8 @@ dayjs.extend(duration);
 const { Title, Text } = Typography;
 const { Search } = Input;
 
-// Mock data from masters
-const machines = [
+// Fallback machines used until persisted master data is available
+const defaultMachines = [
   { id: 1, name: 'Press Unit 14', department: 'Production' },
   { id: 2, name: 'Conveyor A', department: 'Material Handling' },
   { id: 3, name: 'Pump Station 3', department: 'Fluid Systems' },
@@ -105,7 +105,7 @@ const getStatusColor = (status: string) => {
 const DownTimeEntry: React.FC = () => {
   const { role } = useAuth();
   const navigate = useNavigate();
-  const { downtimeRecords, setDowntimeRecords, getActionsByTicket, deleteDowntimeRecord } = useDataContext();
+  const { downtimeRecords, setDowntimeRecords, getActionsByTicket, deleteDowntimeRecord, machines: contextMachines } = useDataContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
@@ -113,6 +113,7 @@ const DownTimeEntry: React.FC = () => {
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState<DownTimeRecord | null>(null);
   const [form] = Form.useForm();
+  const machines = contextMachines.length ? contextMachines : defaultMachines;
 
   const openActionHistory = (record: DownTimeRecord) => {
     setActionHistoryRecord(record);
@@ -155,6 +156,11 @@ const DownTimeEntry: React.FC = () => {
     form.resetFields();
   };
 
+  const handleMachineChange = (machineId: number) => {
+    const selectedMachine = machines.find(m => m.id === machineId);
+    form.setFieldsValue({ department: selectedMachine?.department || '' });
+  };
+
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
@@ -163,6 +169,16 @@ const DownTimeEntry: React.FC = () => {
       const startDateTime = values.startDateTime.format('YYYY-MM-DD HH:mm:ss');
       const endDateTime = values.endDateTime ? values.endDateTime.format('YYYY-MM-DD HH:mm:ss') : '';
       const calculatedDuration = calculateDuration(startDateTime, endDateTime);
+
+      if (values.endDateTime && values.startDateTime.isAfter(values.endDateTime)) {
+        message.error('End date and time cannot be earlier than start date and time');
+        return;
+      }
+
+      if (values.status === 'Closed' && !values.endDateTime) {
+        message.error('Please set an end date and time before closing the ticket');
+        return;
+      }
 
       if (editingRecord) {
         setDowntimeRecords(prev =>
@@ -183,7 +199,7 @@ const DownTimeEntry: React.FC = () => {
               : rec
           )
         );
-        message.success('Down Time record updated successfully');
+        message.success(`Downtime ticket updated and marked as ${values.status}`);
       } else {
         const newRecord: DownTimeRecord = {
           id: Date.now(),
@@ -199,7 +215,7 @@ const DownTimeEntry: React.FC = () => {
           remarks: values.remarks,
         };
         setDowntimeRecords(prev => [newRecord, ...prev]);
-        message.success('Down Time record created successfully');
+        message.success(`Downtime ticket created and marked as ${values.status || 'Open'}`);
       }
       closeDrawer();
     } catch (error) {
@@ -452,6 +468,7 @@ const DownTimeEntry: React.FC = () => {
           >
             <Select
               placeholder="Select machine"
+              onChange={handleMachineChange}
               options={machines.map(m => ({
                 label: m.name,
                 value: m.id,

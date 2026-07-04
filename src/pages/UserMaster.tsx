@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MasterPage } from '../components/MasterPage';
 import type { TableColumnType } from 'antd';
+import { usePersistentState } from '../utils/persistence';
 
 interface User {
   id: number;
@@ -25,7 +26,7 @@ const initialUsers: User[] = [
 ];
 
 const UserMaster: React.FC = () => {
-  const [items, setItems] = useState<User[]>(initialUsers);
+  const [items, setItems] = usePersistentState<User[]>('maintenance-user-master', initialUsers);
   return (
     <MasterPage<User>
       title="User Master"

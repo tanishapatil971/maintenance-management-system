@@ -29,7 +29,7 @@ const formatActionDate = (date: string) => dayjs(date).format('DD/MM/YYYY HH:mm'
 
 const ActionTakenEntry: React.FC = () => {
   const { role } = useAuth();
-  const { downtimeRecords, actionRecords, addAction, updateAction, deleteAction, getTicketById } = useDataContext();
+  const { downtimeRecords, actionRecords, addAction, updateAction, deleteAction, getTicketById, setDowntimeRecords } = useDataContext();
   const location = useLocation();
   const state = location.state as { ticketId?: number } | null;
 
@@ -103,6 +103,16 @@ const ActionTakenEntry: React.FC = () => {
     form.setFieldsValue({ machine: ticket?.machine || '' });
   };
 
+  const syncDowntimeStatus = (ticketId: number, status: string) => {
+    const ticket = getTicketById(ticketId);
+    if (!ticket) return;
+
+    const nextStatus = status === 'In Progress' ? 'In Progress' : status === 'Resolved' || status === 'Closed' ? 'Closed' : 'Open';
+    setDowntimeRecords(prev =>
+      prev.map(record => (record.id === ticketId ? { ...record, status: nextStatus } : record))
+    );
+  };
+
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
@@ -131,10 +141,12 @@ const ActionTakenEntry: React.FC = () => {
           ticketNumber: ticket.ticketNumber,
           machine: ticket.machine,
         });
-        message.success('Action updated successfully');
+        syncDowntimeStatus(ticket.id, payload.status);
+        message.success(`Action updated and downtime marked as ${payload.status === 'In Progress' ? 'In Progress' : 'Closed'}`);
       } else {
         addAction(payload);
-        message.success('Action recorded successfully');
+        syncDowntimeStatus(ticket.id, payload.status);
+        message.success(`Action recorded and downtime marked as ${payload.status === 'In Progress' ? 'In Progress' : payload.status === 'Open' ? 'Open' : 'Closed'}`);
       }
       closeDrawer();
     } catch (err) {
