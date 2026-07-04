@@ -12,22 +12,22 @@ This project was developed as part of a Web Development Internship at Probity Te
 
 ## Problem Statement
 
-Manufacturing industries require an efficient way to manage machine maintenance activities and minimize downtime.
+Manufacturing industries require an efficient way to manage machine maintenance activities and minimize equipment downtime.
 
-Traditional maintenance tracking using manual records or spreadsheets can lead to:
+Traditional maintenance tracking methods using manual records and spreadsheets can create challenges such as:
 
-- Difficulty tracking machine breakdown history
+- Difficulty tracking machine downtime history
 - Delayed maintenance action updates
 - Poor visibility of pending maintenance activities
-- Lack of centralized maintenance records
+- Lack of centralized maintenance data management
 
-EMMS solves this by digitizing the complete maintenance workflow from downtime reporting to action completion and monitoring.
+EMMS helps digitize the maintenance workflow by providing structured tracking from issue reporting to resolution and monitoring.
 
 ---
 
-## Key Features
+# Features
 
-### Master Management Modules
+## Master Management Modules
 
 - User Management
 - Role & Authorization Management
@@ -35,69 +35,72 @@ EMMS solves this by digitizing the complete maintenance workflow from downtime r
 - Department Master
 - Checklist Management
 - Spare Parts Management
-- Element & Sub Element Management
+- Element Management
+- Sub Element Management
 - Unit of Measurement (UOM)
 - Downtime & Action Configuration
 
 ---
 
-### Maintenance Transaction Modules
+## Transaction Modules
 
-#### Downtime Entry Management
+### Downtime Entry Management
 
-- Record machine downtime incidents
+- Create and manage machine downtime records
 - Track affected machines
 - Maintain downtime status workflow
-- Monitor open and closed issues
+- Monitor open and closed maintenance issues
 
-#### Action Taken Management
+### Action Taken Management
 
-- Record maintenance actions performed
-- Link corrective actions with downtime records
+- Record corrective maintenance actions
+- Link actions with downtime records
 - Track issue resolution progress
 
-#### Preventive Maintenance (PM)
+### Preventive Maintenance (PM)
 
 - Create preventive maintenance schedules
 - Manage planned maintenance activities
-- Track completion status
+- Track maintenance completion status
 
-#### TBM Management
+### TBM Management
 
-- Manage TBM schedules
-- Track execution and completion details
+- Create TBM schedules
+- Monitor execution and completion details
 
 ---
 
-## Maintenance Workflow
+# Maintenance Workflow
 
+```
 Machine Issue Detected
 
-↓
+        ↓
 
 Downtime Entry Created
 
-↓
+        ↓
 
-Maintenance Action Recorded
+Action Taken Recorded
 
-↓
+        ↓
 
-Issue Resolution Updated
+Maintenance Completed
 
-↓
+        ↓
 
-Status Closure
+Issue Closed
 
-↓
+        ↓
 
 Dashboard Monitoring
+```
 
 ---
 
-## Dashboard Features
+# Dashboard Features
 
-The dashboard provides maintenance insights including:
+Interactive dashboard for maintenance monitoring:
 
 - Total Machines
 - Open Downtime Records
@@ -105,45 +108,132 @@ The dashboard provides maintenance insights including:
 - Pending Maintenance Activities
 - Maintenance Status Overview
 
-Dashboard metrics are dynamically generated from stored maintenance records.
+Dashboard statistics are dynamically generated from persisted maintenance records.
 
 ---
 
-## Authentication & Authorization
+# Authentication & Authorization
 
-- Login-based access system
-- Role-based user permissions
-- Different access levels for users
+- User login functionality
+- Role-based access control
+- Permission-based UI handling
 - Protected application workflow
 
 ---
 
-## Data Persistence
+# Data Persistence
 
-Implemented persistent data handling using a reusable storage layer.
+Implemented reusable data persistence functionality.
 
 Features:
 
-- Saves master records
-- Stores maintenance transactions
+- Stores master records
+- Maintains downtime/action transaction data
+- Saves schedule information
 - Maintains authentication state
-- Preserves data after page refresh
+- Data remains available after page refresh
 
 ---
 
-## Technology Stack
+# Technology Stack
 
 | Category | Technology |
-|---------|------------|
+|---|---|
 | Frontend | React.js, TypeScript |
-| UI Framework | Ant Design |
+| UI Library | Ant Design |
 | Build Tool | Vite |
-| State Management | Context API |
-| Storage | LocalStorage Persistence Layer |
 | Routing | React Router |
+| State Management | Context API |
+| Data Storage | LocalStorage Persistence |
 | Styling | CSS |
 | Version Control | Git & GitHub |
 
 ---
 
-## Project Structure
+# Project Structure
+
+```
+src/
+
+├── components/
+│   └── Reusable UI Components
+
+├── context/
+│   ├── AuthContext
+│   └── Data Management Context
+
+├── pages/
+│   ├── Dashboard
+│   ├── Master Modules
+│   └── Transaction Modules
+
+├── utils/
+│   └── Helper & Persistence Utilities
+
+├── App.tsx
+
+└── main.tsx
+```
+
+---
+
+# Installation & Setup
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run development server:
+
+```bash
+npm run dev
+```
+
+Build project:
+
+```bash
+npm run build
+```
+
+---
+
+# Project Status
+
+Completed:
+
+- Requirement Analysis
+- Application Architecture Design
+- Master Module Development
+- Maintenance Transaction Workflow
+- Authentication & Authorization
+- Data Persistence Implementation
+- Dashboard Integration
+- Testing & Optimization
+
+---
+
+# Future Enhancements
+
+- Backend API Integration
+- Database Connectivity
+- Advanced Analytics Reports
+- Notification System
+- Deployment Improvements
+
+---
+
+# Developer
+
+**Tanisha Patil**
+
+B.Tech Artificial Intelligence & Machine Learning
+
+---
