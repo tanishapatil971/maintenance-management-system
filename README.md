@@ -6,7 +6,7 @@ The application centralizes maintenance activities including machine downtime tr
 
 ---
 
-## ✨ Project Highlights
+##  Project Highlights
 
 - 🔐 Role-Based Authentication
 - 🏭 Machine & Department Management
@@ -220,31 +220,31 @@ src/
 
 ## Login
 
-> *(Add Screenshot)*
+![Login](screenshots/login.png)
 
 ---
 
 ## Dashboard
 
-> *(Add Screenshot)*
+![Dashboard](screenshots/dashboard.png)
 
 ---
 
 ## Machine Master
 
-> *(Add Screenshot)*
+![Machine Master](screenshots/machine-master.png)
 
 ---
 
 ## Downtime Entry
 
-> *(Add Screenshot)*
+![Downtime Entry](screenshots/downtime-entry.png)
 
 ---
 
 ## Analytics
 
-> *(Add Screenshot)*
+![Analytics](screenshots/analytics.png)
 
 ---
 
