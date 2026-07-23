@@ -1,33 +1,45 @@
 # Enterprise Maintenance Management System (EMMS)
 
-## Project Overview
+An Enterprise Maintenance Management System (EMMS) developed during my **Web Development Internship at Probity Technologies Pvt. Ltd.** to digitize and streamline maintenance operations in manufacturing environments.
 
-Enterprise Maintenance Management System (EMMS) is a web-based application developed for the manufacturing domain to manage and monitor machine maintenance activities efficiently.
-
-The system provides a centralized platform for tracking machine downtime, recording maintenance actions, managing preventive maintenance schedules, and monitoring key maintenance metrics through an interactive dashboard.
-
-This project was developed as part of a Web Development Internship at Probity Technologies Pvt. Ltd.
+The application centralizes maintenance activities including machine downtime tracking, preventive maintenance scheduling, corrective action management, and real-time maintenance monitoring through an interactive dashboard.
 
 ---
 
-## Problem Statement
+## ✨ Project Highlights
 
-Manufacturing industries require an efficient way to manage machine maintenance activities and minimize equipment downtime.
+- 🔐 Role-Based Authentication
+- 🏭 Machine & Department Management
+- 🛠️ Downtime Tracking
+- 📋 Preventive Maintenance (PM)
+- ⚙️ TBM Management
+- 📊 Interactive Dashboard & Analytics
+- 📁 CRUD Operations
+- 💾 Local Storage Persistence
+- 📱 Responsive Enterprise UI
+- ⚡ Built with React + TypeScript + Ant Design
 
-Traditional maintenance tracking methods using manual records and spreadsheets can create challenges such as:
+---
+
+# Problem Statement
+
+Manufacturing industries require an efficient system to monitor machine maintenance activities and minimize equipment downtime.
+
+Traditional maintenance tracking through spreadsheets and manual records often leads to:
 
 - Difficulty tracking machine downtime history
-- Delayed maintenance action updates
+- Delayed maintenance updates
+- Lack of centralized maintenance information
 - Poor visibility of pending maintenance activities
-- Lack of centralized maintenance data management
+- Inefficient maintenance planning
 
-EMMS helps digitize the maintenance workflow by providing structured tracking from issue reporting to resolution and monitoring.
+The Enterprise Maintenance Management System addresses these challenges by providing a centralized digital platform for maintenance planning, execution, monitoring, and reporting.
 
 ---
 
 # Features
 
-## Master Management Modules
+## Master Management
 
 - User Management
 - Role & Authorization Management
@@ -44,160 +56,225 @@ EMMS helps digitize the maintenance workflow by providing structured tracking fr
 
 ## Transaction Modules
 
-### Downtime Entry Management
+### Downtime Entry
 
-- Create and manage machine downtime records
+- Create downtime records
 - Track affected machines
-- Maintain downtime status workflow
-- Monitor open and closed maintenance issues
+- Manage downtime lifecycle
+- Monitor maintenance status
 
-### Action Taken Management
+### Action Taken
 
-- Record corrective maintenance actions
+- Record corrective actions
 - Link actions with downtime records
-- Track issue resolution progress
+- Track maintenance completion
 
 ### Preventive Maintenance (PM)
 
-- Create preventive maintenance schedules
-- Manage planned maintenance activities
-- Track maintenance completion status
+- Schedule preventive maintenance
+- Track maintenance completion
+- Monitor pending schedules
 
 ### TBM Management
 
-- Create TBM schedules
-- Monitor execution and completion details
+- Schedule TBM activities
+- Record execution details
+- Track completion status
+
+---
+
+## Dashboard & Analytics
+
+- Total Machines
+- Open Downtime
+- Closed Downtime
+- Pending Maintenance
+- Dashboard KPI Cards
+- Maintenance Analytics
+- Recent Activities
+- Responsive Dashboard Layout
+
+---
+
+## Authentication & Authorization
+
+- Secure Login
+- Role-Based Access Control
+- Protected Routes
+- Permission-Based UI
+- Logout Functionality
+
+---
+
+## Data Persistence
+
+The application uses Local Storage persistence to retain data between sessions.
+
+Supports persistence for:
+
+- Master Records
+- Downtime Records
+- Action Taken Records
+- PM Schedules
+- TBM Schedules
+- Authentication State
 
 ---
 
 # Maintenance Workflow
 
-```
+```text
 Machine Issue Detected
-
-        ↓
-
+          │
+          ▼
 Downtime Entry Created
-
-        ↓
-
+          │
+          ▼
 Action Taken Recorded
-
-        ↓
-
+          │
+          ▼
 Maintenance Completed
-
-        ↓
-
+          │
+          ▼
 Issue Closed
-
-        ↓
-
-Dashboard Monitoring
+          │
+          ▼
+Dashboard & Analytics
 ```
-
----
-
-# Dashboard Features
-
-Interactive dashboard for maintenance monitoring:
-
-- Total Machines
-- Open Downtime Records
-- Closed Downtime Records
-- Pending Maintenance Activities
-- Maintenance Status Overview
-
-Dashboard statistics are dynamically generated from persisted maintenance records.
-
----
-
-# Authentication & Authorization
-
-- User login functionality
-- Role-based access control
-- Permission-based UI handling
-- Protected application workflow
-
----
-
-# Data Persistence
-
-Implemented reusable data persistence functionality.
-
-Features:
-
-- Stores master records
-- Maintains downtime/action transaction data
-- Saves schedule information
-- Maintains authentication state
-- Data remains available after page refresh
 
 ---
 
 # Technology Stack
 
 | Category | Technology |
-|---|---|
-| Frontend | React.js, TypeScript |
-| UI Library | Ant Design |
-| Build Tool | Vite |
+|-----------|------------|
+| Frontend | React.js |
+| Language | TypeScript |
+| UI Framework | Ant Design |
 | Routing | React Router |
 | State Management | Context API |
-| Data Storage | LocalStorage Persistence |
+| Data Storage | Local Storage |
+| Build Tool | Vite |
 | Styling | CSS |
 | Version Control | Git & GitHub |
 
 ---
 
+# Architecture Overview
+
+```text
+                 User
+
+                   │
+
+                   ▼
+
+            React Application
+
+                   │
+
+         Context API State Management
+
+                   │
+
+        Local Storage Persistence
+
+                   │
+
+ Dashboard • Masters • Transactions
+```
+
+---
+
 # Project Structure
 
-```
+```text
 src/
-
+│
 ├── components/
+│   ├── Sidebar
+│   ├── Header
+│   ├── CRUD Components
 │   └── Reusable UI Components
-
+│
 ├── context/
 │   ├── AuthContext
-│   └── Data Management Context
-
+│   └── DataContext
+│
 ├── pages/
 │   ├── Dashboard
-│   ├── Master Modules
-│   └── Transaction Modules
-
+│   ├── Analytics
+│   ├── Masters
+│   └── Transactions
+│
 ├── utils/
 │   └── Helper & Persistence Utilities
-
+│
 ├── App.tsx
-
 └── main.tsx
 ```
 
 ---
 
-# Installation & Setup
+# Screenshots
 
-Clone the repository:
+## Login
+
+> *(Add Screenshot)*
+
+---
+
+## Dashboard
+
+> *(Add Screenshot)*
+
+---
+
+## Machine Master
+
+> *(Add Screenshot)*
+
+---
+
+## Downtime Entry
+
+> *(Add Screenshot)*
+
+---
+
+## Analytics
+
+> *(Add Screenshot)*
+
+---
+
+# Installation
+
+Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/tanishapatil971/maintenance-management-system.git
 ```
 
-Install dependencies:
+Navigate to the project
+
+```bash
+cd maintenance-management-system
+```
+
+Install dependencies
 
 ```bash
 npm install
 ```
 
-Run development server:
+Run the development server
 
 ```bash
 npm run dev
 ```
 
-Build project:
+Build the application
 
 ```bash
 npm run build
@@ -205,28 +282,54 @@ npm run build
 
 ---
 
+# Key Features
+
+- Enterprise UI using Ant Design
+- Modular Component Architecture
+- Role-Based Authentication
+- Dashboard Analytics
+- CRUD Operations
+- Persistent Data Storage
+- Responsive Design
+- Reusable Components
+- Context API State Management
+
+---
+
 # Project Status
 
-Completed:
+✅ Requirement Analysis
 
-- Requirement Analysis
-- Application Architecture Design
-- Master Module Development
-- Maintenance Transaction Workflow
-- Authentication & Authorization
-- Data Persistence Implementation
-- Dashboard Integration
-- Testing & Optimization
+✅ Application Architecture
+
+✅ Master Module Development
+
+✅ Maintenance Workflow Implementation
+
+✅ Role-Based Authentication
+
+✅ Dashboard Development
+
+✅ Analytics Dashboard
+
+✅ Local Storage Persistence
+
+✅ UI/UX Refinement
+
+✅ Testing & Optimization
 
 ---
 
 # Future Enhancements
 
-- Backend API Integration
-- Database Connectivity
-- Advanced Analytics Reports
-- Notification System
-- Deployment Improvements
+- REST API Integration
+- SQL Database Integration
+- Predictive Maintenance using AI/ML
+- Email Notifications
+- Advanced Maintenance Reports
+- Asset Lifecycle Analytics
+- Cloud Deployment
+- Multi-Plant Management
 
 ---
 
@@ -234,6 +337,16 @@ Completed:
 
 **Tanisha Patil**
 
-B.Tech Artificial Intelligence & Machine Learning
+B.Tech – Artificial Intelligence & Machine Learning
+
+**GitHub**
+
+https://github.com/tanishapatil971
+
+**Internship**
+
+Probity Technologies Pvt. Ltd.
 
 ---
+
+## ⭐ If you found this project useful, consider giving it a Star.
