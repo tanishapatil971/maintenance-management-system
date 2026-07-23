@@ -1,5 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { DownloadOutlined } from '@ant-design/icons';
 import { useLocation } from 'react-router-dom';
+import { exportToCSV } from '../utils/export';
 import {
   Card,
   Typography,
@@ -12,10 +14,10 @@ import {
   DatePicker,
   Badge,
   Popconfirm,
-  message,
   Row,
   Col,
   Space,
+  App,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
@@ -39,6 +41,10 @@ const ActionTakenEntry: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<ActionTakenRecord | null>(null);
   const [form] = Form.useForm();
+  const [loading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const { notification } = App.useApp();
 
   const isViewer = role === 'viewer';
   const canEdit = role === 'manager' || role === 'admin';
@@ -116,9 +122,20 @@ const ActionTakenEntry: React.FC = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
+      
+      setSubmitting(true);
+      await new Promise(res => setTimeout(res, 400));
+      
       const ticket = getTicketById(values.ticketId);
       if (!ticket) {
-        message.error('Please select a valid downtime ticket.');
+        notification.error({ message: 'Error', description: 'Selected downtime ticket not found.' });
+        setSubmitting(false);
+        return;
+      }
+
+      if (values.actionDateTime.isBefore(dayjs(ticket.startDateTime))) {
+        notification.error({ message: 'Validation Error', description: 'Action date cannot be earlier than the downtime ticket start date.' });
+        setSubmitting(false);
         return;
       }
 
@@ -142,21 +159,26 @@ const ActionTakenEntry: React.FC = () => {
           machine: ticket.machine,
         });
         syncDowntimeStatus(ticket.id, payload.status);
-        message.success(`Action updated and downtime marked as ${payload.status === 'In Progress' ? 'In Progress' : 'Closed'}`);
+        notification.success({ message: 'Update Successful', description: `Action updated and downtime marked as ${payload.status === 'In Progress' ? 'In Progress' : 'Closed'}` });
       } else {
         addAction(payload);
         syncDowntimeStatus(ticket.id, payload.status);
-        message.success(`Action recorded and downtime marked as ${payload.status === 'In Progress' ? 'In Progress' : payload.status === 'Open' ? 'Open' : 'Closed'}`);
+        notification.success({ message: 'Create Successful', description: `Action recorded and downtime marked as ${payload.status === 'In Progress' ? 'In Progress' : payload.status === 'Open' ? 'Open' : 'Closed'}` });
       }
+      setSubmitting(false);
       closeDrawer();
     } catch (err) {
-      message.error('Please complete all required fields.');
+      notification.error({ message: 'Validation Error', description: 'Please complete all required fields.' });
+      setSubmitting(false);
     }
   };
 
-  const handleDelete = (record: ActionTakenRecord) => {
+  const handleDelete = async (record: ActionTakenRecord) => {
+    setDeletingId(record.id);
+    await new Promise(res => setTimeout(res, 400));
     deleteAction(record.id);
-    message.success('Action deleted successfully');
+    setDeletingId(null);
+    notification.success({ message: 'Delete Successful', description: 'Action deleted successfully' });
   };
 
   const filteredActions = useMemo(
@@ -247,7 +269,7 @@ const ActionTakenEntry: React.FC = () => {
               okText="Delete"
               cancelText="Cancel"
             >
-              <Button type="link" danger>
+              <Button type="link" danger loading={deletingId === record.id} disabled={deletingId === record.id}>
                 Delete
               </Button>
             </Popconfirm>
@@ -264,47 +286,48 @@ const ActionTakenEntry: React.FC = () => {
         <Title level={2} style={{ marginBottom: 8 }}>
           Action Taken Entry
         </Title>
-        <Text type="secondary">
-          Capture maintenance actions linked to existing downtime tickets and preserve a complete resolution history.
-        </Text>
       </div>
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, textAlign: 'center' }}>
-            <Badge color="orange" text="Open Actions" />
-            <Title level={3} style={{ margin: '12px 0 0' }}>
-              {openCount}
-            </Title>
+          <Card bordered={false} style={{ borderLeft: '4px solid #f59e0b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Open Actions</Text>
+              <Badge status="warning" />
+            </div>
+            <Title level={4} style={{ margin: '8px 0 0', fontWeight: 700 }}>{openCount}</Title>
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, textAlign: 'center' }}>
-            <Badge color="blue" text="In Progress" />
-            <Title level={3} style={{ margin: '12px 0 0' }}>
-              {inProgressCount}
-            </Title>
+          <Card bordered={false} style={{ borderLeft: '4px solid #2563eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>In Progress</Text>
+              <Badge status="processing" />
+            </div>
+            <Title level={4} style={{ margin: '8px 0 0', fontWeight: 700 }}>{inProgressCount}</Title>
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, textAlign: 'center' }}>
-            <Badge color="green" text="Resolved / Closed" />
-            <Title level={3} style={{ margin: '12px 0 0' }}>
-              {resolvedCount}
-            </Title>
+          <Card bordered={false} style={{ borderLeft: '4px solid #10b981' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Resolved / Closed</Text>
+              <Badge status="success" />
+            </div>
+            <Title level={4} style={{ margin: '8px 0 0', fontWeight: 700 }}>{resolvedCount}</Title>
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, textAlign: 'center' }}>
-            <Title level={3} style={{ margin: '12px 0 0' }}>
-              {actionRecords.length}
-            </Title>
-            <Text type="secondary">Total maintenance actions</Text>
+          <Card bordered={false} style={{ borderLeft: '4px solid #64748b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Total Actions</Text>
+              <Badge status="default" />
+            </div>
+            <Title level={4} style={{ margin: '8px 0 0', fontWeight: 700 }}>{actionRecords.length}</Title>
           </Card>
         </Col>
       </Row>
 
-      <Card bordered={false} style={{ borderRadius: 24, boxShadow: '0 16px 40px rgba(15, 23, 42, 0.06)' }}>
+      <Card bordered={false}>
         <div style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
           <Search
             placeholder="Search action number, ticket, engineer..."
@@ -332,18 +355,41 @@ const ActionTakenEntry: React.FC = () => {
               value: ticket.id,
             }))}
           />
-          {canEdit && (
-            <Button type="primary" onClick={() => openDrawer()}>
-              + New Action
+          <Space wrap>
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={() => {
+                const exportData = filteredActions.map(r => ({
+                  Action_Number: r.actionNumber,
+                  Ticket_Number: downtimeRecords.find(t => t.id === r.ticketId)?.ticketNumber || r.ticketId,
+                  Machine: r.machine,
+                  Action_Taken: r.actionTaken,
+                  Status: r.status,
+                  Engineer: r.maintenanceEngineer,
+                  Time: dayjs(r.actionDateTime).format('YYYY-MM-DD HH:mm'),
+                }));
+                exportToCSV(exportData, 'action_taken_report.csv');
+              }}
+            >
+              Export CSV
             </Button>
-          )}
+            {canEdit && (
+              <Button type="primary" onClick={() => openDrawer()}>
+                + New Action
+              </Button>
+            )}
+          </Space>
         </div>
 
         <Table
+          loading={loading}
           dataSource={filteredActions}
           columns={columns}
           rowKey="id"
           pagination={{ pageSize: 8, showSizeChanger: true }}
+          size="middle"
+          rowClassName={(_, index) => index % 2 === 0 ? '' : 'table-row-zebra'}
+          scroll={{ x: 'max-content' }}
           expandable={{
             expandedRowRender: record => (
               <div style={{ display: 'grid', gap: 12 }}>
@@ -379,22 +425,25 @@ const ActionTakenEntry: React.FC = () => {
         onClose={closeDrawer}
         open={isDrawerOpen}
         width={560}
+        destroyOnClose
         extra={
           <Space>
-            <Button onClick={closeDrawer}>Cancel</Button>
-            <Button type="primary" onClick={handleSave}>
+            <Button onClick={closeDrawer} disabled={submitting}>Cancel</Button>
+            <Button type="primary" onClick={() => form.submit()} loading={submitting}>
               {editingRecord ? 'Update action' : 'Record action'}
             </Button>
           </Space>
         }
       >
-        <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
+        <Form form={form} layout="vertical" style={{ marginTop: 24 }} onFinish={handleSave}>
           <Form.Item
             label="Down Time Ticket"
             name="ticketId"
             rules={[{ required: true, message: 'Please select a downtime ticket' }]}
           >
             <Select
+              autoFocus
+              disabled={submitting}
               placeholder="Select downtime ticket"
               options={downtimeRecords.map(ticket => ({
                 label: `${ticket.ticketNumber} — ${ticket.machine}`,
@@ -474,10 +523,14 @@ const ActionTakenEntry: React.FC = () => {
         </Form>
       </Drawer>
 
-      <Card bordered={false} style={{ marginTop: 24, borderRadius: 24, boxShadow: '0 16px 40px rgba(15, 23, 42, 0.06)' }}>
-        <Title level={4}>Recent Maintenance Actions</Title>
+      <Card bordered={false} style={{ marginTop: 24 }}>
+        <div style={{ marginBottom: 16 }}>
+          <Title level={4} style={{ margin: 0 }}>Recent Maintenance Actions</Title>
+        </div>
         <Table
           dataSource={recentMaintenanceActions}
+          size="middle"
+          rowClassName={(_, index) => index % 2 === 0 ? '' : 'table-row-zebra'}
           columns={[
             { title: 'Action #', dataIndex: 'actionNumber', key: 'actionNumber' },
             { title: 'Ticket', dataIndex: 'ticketNumber', key: 'ticketNumber' },

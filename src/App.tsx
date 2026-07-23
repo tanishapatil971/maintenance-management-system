@@ -1,10 +1,13 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import React, { Suspense, type ReactElement } from 'react';
-import { Layout } from 'antd';
+import { Layout, ConfigProvider, Empty, App as AntdApp } from 'antd';
+
 import './App.css';
 import { Sidebar } from './components/Sidebar';
+import AppHeader from './components/AppHeader';
 const Login = React.lazy(() => import('./pages/Login'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Analytics = React.lazy(() => import('./pages/Analytics'));
 // Masters
 const UserMaster = React.lazy(() => import('./pages/UserMaster'));
 const DepartmentMaster = React.lazy(() => import('./pages/DepartmentMaster'));
@@ -38,69 +41,135 @@ const PrivateRoute = ({ children }: { children: ReactElement }) => {
 
 function App() {
   return (
-    <AuthProvider>
-      <DataProvider>
-        <Suspense fallback={<div>Loading...</div>}>
-          <Router>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/*"
-                element={
-                  <PrivateRoute>
-                    <Layout className="app-layout">
-                      <Sider width={280} className="app-sider">
-                        <Sidebar />
-                      </Sider>
-                      <Layout className="app-main">
-                        <Header className="app-header">
-                          <div className="app-header-content">
-                            <div>
-                              <div className="brand-label">Probity Technologies Pvt. Ltd.</div>
-                              <div className="brand-title">Maintenance Intelligence Suite</div>
+    <ConfigProvider
+      renderEmpty={() => <Empty description="No data found" image={Empty.PRESENTED_IMAGE_SIMPLE} />}
+      theme={{
+        token: {
+          colorPrimary: '#2563eb', // Enterprise blue primary
+          colorSuccess: '#10b981', // Emerald green success
+          colorWarning: '#f59e0b', // Amber warning
+          colorError: '#ef4444', // Red error
+          colorInfo: '#2563eb',
+          borderRadius: 6, // Modern standard curvature
+          fontFamily: `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`,
+          colorTextBase: '#334155', // Slate 700 text color
+          colorTextHeading: '#0f172a', // Slate 900 headings
+          colorBgLayout: '#f8fafc', // Layout bg
+          colorBgContainer: '#ffffff', // Card/Table container bg
+          colorBorder: '#cbd5e1', // Borders slate 300
+          colorBorderSecondary: '#f1f5f9', // Light dividing lines slate 100
+        },
+        components: {
+          Layout: {
+            headerBg: '#ffffff',
+            headerPadding: '0 24px',
+            siderBg: '#0f172a', // Premium dark sidebar
+          },
+          Menu: {
+            darkItemBg: '#0f172a',
+            darkItemSelectedBg: '#1e293b',
+            darkItemSelectedColor: '#60a5fa', // Blue light tint for selected text
+            darkItemHoverBg: 'rgba(255, 255, 255, 0.04)',
+            darkItemColor: '#94a3b8',
+          },
+          Table: {
+            headerBg: '#f8fafc', // Sleek off-white header
+            headerColor: '#475569',
+            headerSplitColor: 'transparent',
+            cellPaddingBlock: 12,
+            cellPaddingInline: 16,
+            borderColor: '#e2e8f0',
+            rowHoverBg: '#f8fafc',
+          },
+          Card: {
+            colorBorderBg: '#e2e8f0',
+            paddingLG: 20,
+            borderRadiusLG: 8,
+          },
+          Form: {
+            itemMarginBottom: 20,
+            verticalLabelPadding: '0 0 6px',
+            labelColor: '#475569',
+            labelFontSize: 14,
+          },
+          Button: {
+            controlHeight: 36,
+            borderRadius: 6,
+          },
+          Input: {
+            controlHeight: 36,
+            borderRadius: 6,
+          },
+          Select: {
+            controlHeight: 36,
+            borderRadius: 6,
+          },
+          DatePicker: {
+            controlHeight: 36,
+            borderRadius: 6,
+          },
+        }
+      }}
+    >
+      <AuthProvider>
+        <DataProvider>
+          <Suspense fallback={<div style={{ padding: 48, textAlign: 'center', fontSize: 18, color: '#64748b' }}>Loading Maintenance Suite...</div>}>
+            <AntdApp>
+              <Router>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route
+                  path="/*"
+                  element={
+                    <PrivateRoute>
+                      <Layout className="app-layout">
+                        <Sider width={240} className="app-sider" breakpoint="lg" collapsedWidth="0">
+                          <Sidebar />
+                        </Sider>
+                        <Layout className="app-main">
+                          <Header className="app-header">
+                            <AppHeader />
+                          </Header>
+                          <Content className="app-content">
+                            <div className="page-shell">
+                              <Routes>
+                                <Route index element={<Navigate to="/dashboard" replace />} />
+                                <Route path="dashboard" element={<Dashboard />} />
+                                <Route path="analytics" element={<Analytics />} />
+                                {/* Masters */}
+                                <Route path="user-master" element={<UserMaster />} />
+                                <Route path="department-master" element={<DepartmentMaster />} />
+                                <Route path="authorization-master" element={<AuthorizationMaster />} />
+                                <Route path="element-master" element={<ElementMaster />} />
+                                <Route path="sub-element-master" element={<SubElementMaster />} />
+                                <Route path="machine-master" element={<MachineMaster />} />
+                                <Route path="checklist-master" element={<ChecklistMaster />} />
+                                <Route path="uom-master" element={<UOMMaster />} />
+                                <Route path="spare-master" element={<SpareMaster />} />
+                                <Route path="downtime-master" element={<DownTimeMaster />} />
+                                <Route path="actiontaken-master" element={<ActionTakenMaster />} />
+                                <Route path="maintenancetype-master" element={<MaintenanceTypeMaster />} />
+                                {/* Transactions */}
+                                <Route path="downtime-entry" element={<DownTimeEntry />} />
+                                <Route path="actiontaken-entry" element={<ActionTakenEntry />} />
+                                <Route path="pmschedule-entry" element={<PMScheduleEntry />} />
+                                <Route path="pmschedule-completion-entry" element={<PMScheduleCompletionEntry />} />
+                                <Route path="tbmschedule-entry" element={<TBMScheduleEntry />} />
+                              </Routes>
                             </div>
-                            <div className="header-actions">
-                              <span className="header-chip">Enterprise Access</span>
-                            </div>
-                          </div>
-                        </Header>
-                        <Content className="app-content">
-                          <div className="page-shell">
-                            <Routes>
-                              <Route index element={<Navigate to="/dashboard" replace />} />
-                              <Route path="dashboard" element={<Dashboard />} />
-                              {/* Masters */}
-                              <Route path="user-master" element={<UserMaster />} />
-                              <Route path="department-master" element={<DepartmentMaster />} />
-                              <Route path="authorization-master" element={<AuthorizationMaster />} />
-                              <Route path="element-master" element={<ElementMaster />} />
-                              <Route path="sub-element-master" element={<SubElementMaster />} />
-                              <Route path="machine-master" element={<MachineMaster />} />
-                              <Route path="checklist-master" element={<ChecklistMaster />} />
-                              <Route path="uom-master" element={<UOMMaster />} />
-                              <Route path="spare-master" element={<SpareMaster />} />
-                              <Route path="downtime-master" element={<DownTimeMaster />} />
-                              <Route path="actiontaken-master" element={<ActionTakenMaster />} />
-                              <Route path="maintenancetype-master" element={<MaintenanceTypeMaster />} />
-                              {/* Transactions */}
-                              <Route path="downtime-entry" element={<DownTimeEntry />} />
-                              <Route path="actiontaken-entry" element={<ActionTakenEntry />} />
-                              <Route path="pmschedule-entry" element={<PMScheduleEntry />} />
-                              <Route path="pmschedule-completion-entry" element={<PMScheduleCompletionEntry />} />
-                              <Route path="tbmschedule-entry" element={<TBMScheduleEntry />} />
-                            </Routes>
-                          </div>
-                        </Content>
+                          </Content>
+                        </Layout>
                       </Layout>
-                    </Layout>
-                  </PrivateRoute>
-                }
-              />
-            </Routes>
-          </Router>
-        </Suspense>
-      </DataProvider>
-    </AuthProvider>
+                    </PrivateRoute>
+                  }
+                />
+              </Routes>
+              </Router>
+            </AntdApp>
+          </Suspense>
+        </DataProvider>
+      </AuthProvider>
+    </ConfigProvider>
   );
 }
 

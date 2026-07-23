@@ -7,6 +7,8 @@ export interface AuthContextProps {
   setRole: (role: Role) => void;
   isAuthenticated: boolean;
   setIsAuthenticated: (authenticated: boolean) => void;
+  username: string;
+  setUsername: (username: string) => void;
 }
 
 export const AuthContext = createContext<AuthContextProps | undefined>(undefined);

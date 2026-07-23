@@ -3,7 +3,7 @@ import { Card, Typography } from 'antd';
 import type { TableColumnType } from 'antd';
 import { CrudTable } from './CrudTable';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface MasterPageProps<T extends { id: number }> {
   title: string;
@@ -15,18 +15,14 @@ interface MasterPageProps<T extends { id: number }> {
 }
 
 export function MasterPage<T extends { id: number }>(props: MasterPageProps<T>) {
-  const { title, description, items, setItems, columns, entityName } = props;
+  const { title, items, setItems, columns, entityName } = props;
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ marginBottom: 20 }}>
-        <Title level={2} style={{ marginBottom: 8 }}>{title}</Title>
-        {description && <Text type="secondary">{description}</Text>}
+    <div style={{ padding: '24px' }}>
+      <div style={{ marginBottom: 24 }}>
+        <Title level={3} style={{ margin: 0, fontWeight: 700 }}>{title}</Title>
       </div>
-      <Card bordered={false} style={{ borderRadius: 24, boxShadow: '0 16px 40px rgba(15, 23, 42, 0.06)' }}>
-        <div style={{ marginBottom: 20 }}>
-          {description && <Text type="secondary">{description}</Text>}
-        </div>
+      <Card bordered={false}>
         <CrudTable<T> items={items} setItems={setItems} columns={columns} entityName={entityName} />
       </Card>
     </div>

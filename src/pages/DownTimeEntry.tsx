@@ -10,19 +10,21 @@ import {
   DatePicker,
   Badge,
   Popconfirm,
-  message,
   Space,
   Drawer,
   Row,
   Col,
   Tag,
+  App,
 } from 'antd';
 import type { TableColumnType } from 'antd';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import { DownloadOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useDataContext } from '../context/DataContext';
+import { exportToCSV } from '../utils/export';
 
 dayjs.extend(duration);
 
@@ -113,6 +115,10 @@ const DownTimeEntry: React.FC = () => {
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState<DownTimeRecord | null>(null);
   const [form] = Form.useForm();
+  const [loading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const { notification } = App.useApp();
   const machines = contextMachines.length ? contextMachines : defaultMachines;
 
   const openActionHistory = (record: DownTimeRecord) => {
@@ -165,18 +171,23 @@ const DownTimeEntry: React.FC = () => {
     try {
       const values = await form.validateFields();
       
+      setSubmitting(true);
+      await new Promise(res => setTimeout(res, 400));
+      
       const selectedMachine = machines.find(m => m.id === values.machine);
       const startDateTime = values.startDateTime.format('YYYY-MM-DD HH:mm:ss');
       const endDateTime = values.endDateTime ? values.endDateTime.format('YYYY-MM-DD HH:mm:ss') : '';
       const calculatedDuration = calculateDuration(startDateTime, endDateTime);
 
       if (values.endDateTime && values.startDateTime.isAfter(values.endDateTime)) {
-        message.error('End date and time cannot be earlier than start date and time');
+        notification.error({ message: 'Validation Error', description: 'End date and time cannot be earlier than start date and time' });
+        setSubmitting(false);
         return;
       }
 
       if (values.status === 'Closed' && !values.endDateTime) {
-        message.error('Please set an end date and time before closing the ticket');
+        notification.error({ message: 'Validation Error', description: 'Please set an end date and time before closing the ticket' });
+        setSubmitting(false);
         return;
       }
 
@@ -199,7 +210,7 @@ const DownTimeEntry: React.FC = () => {
               : rec
           )
         );
-        message.success(`Downtime ticket updated and marked as ${values.status}`);
+        notification.success({ message: 'Update Successful', description: `Downtime ticket updated and marked as ${values.status}` });
       } else {
         const newRecord: DownTimeRecord = {
           id: Date.now(),
@@ -215,17 +226,22 @@ const DownTimeEntry: React.FC = () => {
           remarks: values.remarks,
         };
         setDowntimeRecords(prev => [newRecord, ...prev]);
-        message.success(`Downtime ticket created and marked as ${values.status || 'Open'}`);
+        notification.success({ message: 'Create Successful', description: `Downtime ticket created and marked as ${values.status || 'Open'}` });
       }
+      setSubmitting(false);
       closeDrawer();
     } catch (error) {
-      message.error('Please check all required fields');
+      notification.error({ message: 'Validation Error', description: 'Please check all required fields' });
+      setSubmitting(false);
     }
   };
 
-  const handleDelete = (record: DownTimeRecord) => {
+  const handleDelete = async (record: DownTimeRecord) => {
+    setDeletingId(record.id);
+    await new Promise(res => setTimeout(res, 400));
     deleteDowntimeRecord(record.id);
-    message.success('Record deleted successfully');
+    setDeletingId(null);
+    notification.success({ message: 'Delete Successful', description: 'Record deleted successfully' });
   };
 
   const filteredRecords = downtimeRecords.filter(record => {
@@ -335,7 +351,7 @@ const DownTimeEntry: React.FC = () => {
               okText="Delete"
               cancelText="Cancel"
             >
-              <Button type="link" danger size="small">
+              <Button type="link" danger size="small" loading={deletingId === record.id} disabled={deletingId === record.id}>
                 Delete
               </Button>
             </Popconfirm>
@@ -356,58 +372,48 @@ const DownTimeEntry: React.FC = () => {
         <Title level={2} style={{ marginBottom: 8 }}>
           Down Time Entry
         </Title>
-        <Text type="secondary">
-          Record and track machinery downtime incidents with automated ticket generation and status workflow management.
-        </Text>
       </div>
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={8} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, textAlign: 'center' }}>
-            <Badge color="orange" text="" style={{ marginRight: 8 }} />
-            <Title level={3} style={{ margin: '8px 0 0' }}>
-              {openCount}
-            </Title>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Open Downtime
-            </Text>
+        <Col xs={24} sm={12} md={6}>
+          <Card bordered={false} style={{ borderLeft: '4px solid #f59e0b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Open Downtime</Text>
+              <Badge status="warning" />
+            </div>
+            <Title level={4} style={{ margin: '8px 0 0', fontWeight: 700 }}>{openCount}</Title>
           </Card>
         </Col>
-        <Col xs={24} sm={8} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, textAlign: 'center' }}>
-            <Badge color="blue" text="" style={{ marginRight: 8 }} />
-            <Title level={3} style={{ margin: '8px 0 0' }}>
-              {inProgressCount}
-            </Title>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              In Progress
-            </Text>
+        <Col xs={24} sm={12} md={6}>
+          <Card bordered={false} style={{ borderLeft: '4px solid #2563eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>In Progress</Text>
+              <Badge status="processing" />
+            </div>
+            <Title level={4} style={{ margin: '8px 0 0', fontWeight: 700 }}>{inProgressCount}</Title>
           </Card>
         </Col>
-        <Col xs={24} sm={8} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, textAlign: 'center' }}>
-            <Badge color="green" text="" style={{ marginRight: 8 }} />
-            <Title level={3} style={{ margin: '8px 0 0' }}>
-              {closedCount}
-            </Title>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Closed Downtime
-            </Text>
+        <Col xs={24} sm={12} md={6}>
+          <Card bordered={false} style={{ borderLeft: '4px solid #10b981' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Closed Downtime</Text>
+              <Badge status="success" />
+            </div>
+            <Title level={4} style={{ margin: '8px 0 0', fontWeight: 700 }}>{closedCount}</Title>
           </Card>
         </Col>
-        <Col xs={24} sm={8} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, textAlign: 'center' }}>
-            <Title level={3} style={{ margin: '0' }}>
-              {downtimeRecords.length}
-            </Title>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Total Records
-            </Text>
+        <Col xs={24} sm={12} md={6}>
+          <Card bordered={false} style={{ borderLeft: '4px solid #64748b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Total Records</Text>
+              <Badge status="default" />
+            </div>
+            <Title level={4} style={{ margin: '8px 0 0', fontWeight: 700 }}>{downtimeRecords.length}</Title>
           </Card>
         </Col>
       </Row>
 
-      <Card bordered={false} style={{ borderRadius: 24, boxShadow: '0 16px 40px rgba(15, 23, 42, 0.06)' }}>
+      <Card bordered={false}>
         <div style={{ marginBottom: 20, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <Search
             placeholder="Search by ticket, machine, reason..."
@@ -428,19 +434,40 @@ const DownTimeEntry: React.FC = () => {
               { label: 'Closed', value: 'Closed' },
             ]}
           />
-          {canEdit && (
-            <Button type="primary" onClick={() => openDrawer()}>
-              + New Down Time
+          <Space wrap>
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={() => {
+                const exportData = filteredRecords.map(r => ({
+                  Ticket_Number: r.ticketNumber,
+                  Machine: r.machine,
+                  Breakdown_Reason: r.downTimeReason,
+                  Status: r.status,
+                  Start_Time: r.startDateTime,
+                  End_Time: r.endDateTime || '',
+                  Duration: r.endDateTime ? dayjs(r.endDateTime).diff(dayjs(r.startDateTime), 'minute') + ' mins' : '',
+                }));
+                exportToCSV(exportData, 'downtime_report.csv');
+              }}
+            >
+              Export CSV
             </Button>
-          )}
+            {canEdit && (
+              <Button type="primary" onClick={() => openDrawer()}>
+                + New Down Time
+              </Button>
+            )}
+          </Space>
         </div>
 
         <Table
+          loading={loading}
           dataSource={filteredRecords}
           columns={columns}
           rowKey="id"
           pagination={{ pageSize: 10, showSizeChanger: true }}
-          bordered
+          size="middle"
+          rowClassName={(_, index) => index % 2 === 0 ? '' : 'table-row-zebra'}
           scroll={{ x: 1400 }}
         />
       </Card>
@@ -451,22 +478,25 @@ const DownTimeEntry: React.FC = () => {
         onClose={closeDrawer}
         open={isDrawerVisible}
         width={500}
+        destroyOnClose
         extra={
           <Space>
-            <Button onClick={closeDrawer}>Cancel</Button>
-            <Button type="primary" onClick={handleSave}>
+            <Button onClick={closeDrawer} disabled={submitting}>Cancel</Button>
+            <Button type="primary" onClick={() => form.submit()} loading={submitting}>
               {editingRecord ? 'Update' : 'Create'}
             </Button>
           </Space>
         }
       >
-        <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
+        <Form form={form} layout="vertical" style={{ marginTop: 24 }} onFinish={handleSave}>
           <Form.Item
             name="machine"
             label="Machine"
             rules={[{ required: true, message: 'Please select a machine' }]}
           >
             <Select
+              autoFocus
+              disabled={submitting}
               placeholder="Select machine"
               onChange={handleMachineChange}
               options={machines.map(m => ({
@@ -510,14 +540,14 @@ const DownTimeEntry: React.FC = () => {
             label="Start Date & Time"
             rules={[{ required: true, message: 'Please select start date and time' }]}
           >
-            <DatePicker showTime format="DD/MM/YYYY HH:mm" />
+            <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item
             name="endDateTime"
             label="End Date & Time"
           >
-            <DatePicker showTime format="DD/MM/YYYY HH:mm" />
+            <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item

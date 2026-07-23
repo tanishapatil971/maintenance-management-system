@@ -7,6 +7,7 @@ import {
   DatabaseOutlined,
   SettingOutlined,
   FileAddOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons';
 
 const menuItems: MenuProps['items'] = [
@@ -19,6 +20,11 @@ const menuItems: MenuProps['items'] = [
         key: '/dashboard',
         icon: <DashboardOutlined />, 
         label: <NavLink to="/dashboard">Dashboard</NavLink>,
+      },
+      {
+        key: '/analytics',
+        icon: <BarChartOutlined />, 
+        label: <NavLink to="/analytics">Analytics</NavLink>,
       },
     ],
   },

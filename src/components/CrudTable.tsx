@@ -1,7 +1,9 @@
 import React from 'react';
-import { Table, Button, Modal, Form, Input, Popconfirm, message } from 'antd';
+import { Table, Button, Modal, Form, Input, Popconfirm, App, Space } from 'antd';
 import type { TableColumnType } from 'antd';
+import { DownloadOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/useAuth';
+import { exportToCSV } from '../utils/export';
 
 const { Search } = Input;
 
@@ -21,7 +23,11 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
   const [isModalVisible, setIsModalVisible] = React.useState(false);
   const [editingItem, setEditingItem] = React.useState<T | null>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [loading] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [deletingId, setDeletingId] = React.useState<number | null>(null);
   const [form] = Form.useForm();
+  const { notification } = App.useApp();
 
   const showAdd = () => {
     setEditingItem(null);
@@ -37,20 +43,30 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
 
   const handleCancel = () => setIsModalVisible(false);
 
-  const handleOk = async () => {
-    const values = await form.validateFields();
+  const handleOk = async (values: any) => {
+    setSubmitting(true);
+    // Simulate API delay
+    await new Promise(res => setTimeout(res, 400));
+    
     if (editingItem) {
       setItems(prev => prev.map(it => (it.id === editingItem.id ? { ...editingItem, ...values } : it)));
+      notification.success({ message: 'Update Successful', description: `${entityName} has been updated successfully.` });
     } else {
       const newItem = { id: Date.now(), ...values } as T;
       setItems(prev => [...prev, newItem]);
+      notification.success({ message: 'Create Successful', description: `${entityName} has been created successfully.` });
     }
+    setSubmitting(false);
     setIsModalVisible(false);
   };
 
-  const handleDelete = (record: T) => {
+  const handleDelete = async (record: T) => {
+    setDeletingId((record as any).id);
+    // Simulate API delay
+    await new Promise(res => setTimeout(res, 400));
     setItems(prev => prev.filter(it => it.id !== (record as any).id));
-    message.success(`${entityName} deleted`);
+    setDeletingId(null);
+    notification.success({ message: 'Delete Successful', description: `${entityName} has been deleted successfully.` });
   };
 
   const actionColumn: TableColumnType<T> = {
@@ -66,7 +82,7 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
         )}
         {isAdmin && (
           <Popconfirm title={`Delete this ${entityName}?`} onConfirm={() => handleDelete(record)} okText="Delete" cancelText="Cancel">
-            <Button type="link" danger>
+            <Button type="link" danger loading={deletingId === (record as any).id} disabled={deletingId === (record as any).id}>
               Delete
             </Button>
           </Popconfirm>
@@ -89,7 +105,7 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
 
   const formItems = columns
     .filter(col => col.dataIndex && col.dataIndex !== 'id')
-    .map(col => {
+    .map((col, index) => {
       const name = col.dataIndex as string;
       const label = (col.title as string) ?? name;
       const rules: any[] = [
@@ -114,7 +130,7 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
 
       return (
         <Form.Item key={col.key as string} name={name} label={label} rules={rules}>
-          <Input />
+          <Input autoFocus={index === 0} disabled={submitting} />
         </Form.Item>
       );
     });
@@ -129,26 +145,52 @@ export function CrudTable<T extends { id: number }>(props: CrudTableProps<T>) {
           allowClear
           style={{ minWidth: 280, flex: 1 }}
         />
-        {(isAdmin || isMaintenance) && (
-          <Button type="primary" onClick={showAdd}>
-            Add {entityName}
+        <Space>
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={() => {
+              const exportData = filteredItems.map(item => {
+                const row: Record<string, unknown> = {};
+                columns.forEach(col => {
+                  const dataIndex = col.dataIndex as string;
+                  if (dataIndex) {
+                    row[String(col.title ?? dataIndex)] = (item as any)[dataIndex];
+                  }
+                });
+                return row;
+              });
+              exportToCSV(exportData, `${entityName.toLowerCase().replace(/\s+/g, '_')}_master.csv`);
+            }}
+          >
+            Export CSV
           </Button>
-        )}
+          {(isAdmin || isMaintenance) && (
+            <Button type="primary" onClick={showAdd}>
+              Add {entityName}
+            </Button>
+          )}
+        </Space>
       </div>
       <Table
+        loading={loading}
         dataSource={filteredItems}
         columns={tableColumns}
         rowKey="id"
-        pagination={{ pageSize: 8 }}
-        bordered
+        pagination={{ pageSize: 8, showSizeChanger: true }}
+        size="middle"
+        rowClassName={(_, index) => index % 2 === 0 ? 'table-row-light' : 'table-row-zebra'}
+        scroll={{ x: 'max-content' }}
+        sticky
       />
       <Modal
         title={editingItem ? `Edit ${entityName}` : `Add ${entityName}`}
         open={isModalVisible}
         onCancel={handleCancel}
-        onOk={handleOk}
+        onOk={() => form.submit()}
+        confirmLoading={submitting}
+        cancelButtonProps={{ disabled: submitting }}
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" onFinish={handleOk}>
           {formItems}
         </Form>
       </Modal>
