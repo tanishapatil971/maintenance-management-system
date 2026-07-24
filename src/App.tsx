@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import React, { Suspense, type ReactElement } from 'react';
 import { Layout, ConfigProvider, Empty, App as AntdApp } from 'antd';
 
